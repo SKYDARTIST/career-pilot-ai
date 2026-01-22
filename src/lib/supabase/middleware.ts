@@ -37,6 +37,11 @@ export async function updateSession(request: NextRequest) {
     // Demo mode bypass
     const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
+    // Skip auth check for callback route
+    if (request.nextUrl.pathname.startsWith('/auth/')) {
+        return supabaseResponse;
+    }
+
     // Protected routes - redirect to login if not authenticated (except in demo mode)
     const protectedPaths = ['/', '/settings', '/jobs'];
     const isProtectedPath = protectedPaths.some(path =>
