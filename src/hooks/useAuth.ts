@@ -81,14 +81,18 @@ export function useAuth(): UseAuthReturn {
 
         // Production mode: Use real auth
         const getUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                setUser(user);
 
-            if (user) {
-                await fetchProfile(user.id);
+                if (user) {
+                    await fetchProfile(user.id);
+                }
+            } catch (err) {
+                console.error("Auth initialization error:", err);
+            } finally {
+                setLoading(false);
             }
-
-            setLoading(false);
         };
 
         getUser();

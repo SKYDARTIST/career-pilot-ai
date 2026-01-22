@@ -67,7 +67,7 @@ export default function StatusDropdown({ jobId, currentStatus, onStatusChange }:
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
                         transition={{ duration: 0.1 }}
-                        className="absolute right-0 top-full mt-2 z-[60] min-w-[160px] bg-card border border-border rounded-xl shadow-2xl overflow-hidden py-1.5"
+                        className="absolute right-0 top-full mt-2 z-[60] min-w-[160px] glass-card overflow-hidden py-1.5"
                     >
                         <div className="px-3 py-1.5 border-b border-border mb-1">
                             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Change Node Status</span>
@@ -79,7 +79,7 @@ export default function StatusDropdown({ jobId, currentStatus, onStatusChange }:
                                     e.stopPropagation();
                                     handleSelect(option.value);
                                 }}
-                                className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between hover:bg-secondary transition-colors group ${option.value === status ? 'bg-secondary/50' : ''}`}
+                                className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between hover:bg-secondary/80 transition-colors group ${option.value === status ? 'bg-secondary/50' : ''}`}
                             >
                                 <div className="flex items-center gap-2">
                                     <div className={`w-1.5 h-1.5 rounded-full ${option.dot} opacity-60 group-hover:opacity-100 transition-opacity`} />

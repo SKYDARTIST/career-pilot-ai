@@ -43,9 +43,9 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Protected routes - redirect to login if not authenticated (except in demo mode)
-    const protectedPaths = ['/', '/settings', '/jobs'];
+    const protectedPaths = ['/dashboard', '/settings', '/jobs'];
     const isProtectedPath = protectedPaths.some(path =>
-        request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith('/jobs/')
+        request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith('/jobs/') || request.nextUrl.pathname.startsWith('/dashboard')
     );
 
     if (!isDemoMode && !user && isProtectedPath) {
@@ -54,10 +54,11 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // Redirect logged-in users away from auth pages
-    if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
+    // Redirect logged-in users from landing page and auth pages to dashboard
+    const authPaths = ['/', '/login', '/signup'];
+    if (user && authPaths.includes(request.nextUrl.pathname)) {
         const url = request.nextUrl.clone();
-        url.pathname = '/';
+        url.pathname = '/dashboard';
         return NextResponse.redirect(url);
     }
 

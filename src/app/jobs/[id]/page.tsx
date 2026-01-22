@@ -20,6 +20,7 @@ import {
     Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ThemeToggle from '../../components/ThemeToggle';
 
 interface Job {
     id: number;
@@ -179,6 +180,8 @@ export default function JobDetailsPage() {
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
+                            <div className="h-6 w-[1px] bg-border mx-1" />
+                            <ThemeToggle />
                         </div>
                     </div>
                 </div>
@@ -257,7 +260,7 @@ export default function JobDetailsPage() {
                                 key={activeTab}
                                 initial={{ opacity: 0, scale: 0.99 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="pro-card p-10 min-h-[400px]"
+                                className="glass-card p-10 min-h-[400px]"
                             >
                                 {activeTab === 'details' && (
                                     <div className="space-y-6 max-w-2xl mx-auto">
@@ -347,7 +350,7 @@ export default function JobDetailsPage() {
                     {/* Sidebar Panels */}
                     <div className="lg:col-span-4 space-y-8">
                         {/* Status Engine */}
-                        <div className="pro-card p-8">
+                        <div className="glass-card p-8">
                             <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-6">
                                 Pipeline Sector
                             </h3>
@@ -389,14 +392,14 @@ export default function JobDetailsPage() {
                                     Launch Original Node
                                 </a>
                             )}
-                            <div className="p-6 pro-card bg-secondary/20 border-dashed text-center">
+                            <div className="p-6 glass-card bg-secondary/20 border-dashed text-center">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Safety Lock Active</p>
                                 <p className="text-[9px] font-mono text-muted-foreground/60 leading-tight">All external comms are routed through the CareerPilot AI proxy server for your protection.</p>
                             </div>
                         </div>
 
                         {/* Technical Metadata */}
-                        <div className="pro-card p-8">
+                        <div className="glass-card p-8">
                             <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-6">
                                 Node Metadata
                             </h3>

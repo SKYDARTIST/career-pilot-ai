@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -65,7 +66,12 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-6 selection:bg-primary/20">
+        <div className="min-h-screen bg-background bg-mesh-light dark:bg-mesh-dark flex items-center justify-center p-6 selection:bg-primary/20 relative overflow-hidden">
+            {/* Theme Toggle for Auth Pages */}
+            <div className="absolute top-6 right-6 z-50">
+                <ThemeToggle />
+            </div>
+
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -86,7 +92,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Login Container */}
-                <div className="p-8 bg-card border border-border rounded-2xl shadow-xl shadow-black/5 relative overflow-hidden">
+                <div className="p-8 glass-card relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-primary" />
 
                     {error && (
@@ -162,13 +168,13 @@ export default function LoginPage() {
                             <div className="w-full border-t border-border" />
                         </div>
                         <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
-                            <span className="px-4 bg-card text-muted-foreground">Encryption Bridge</span>
+                            <span className="px-4 text-muted-foreground">Encryption Bridge</span>
                         </div>
                     </div>
 
                     <button
                         onClick={handleGoogleLogin}
-                        className="w-full py-2.5 bg-card hover:bg-secondary border border-border rounded-xl font-bold text-xs flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                        className="w-full py-2.5 bg-secondary/50 hover:bg-secondary border border-border rounded-xl font-bold text-xs flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
