@@ -42,7 +42,9 @@ export default function LoginPage() {
             if (error) {
                 setError(error.message);
             } else {
-                router.push('/');
+                // Clear demo signed out flag on successful login
+                localStorage.removeItem('demo_signed_out');
+                router.push('/dashboard');
                 router.refresh();
             }
         } catch (err) {

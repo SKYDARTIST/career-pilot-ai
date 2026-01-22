@@ -71,8 +71,13 @@ export function useAuth(): UseAuthReturn {
     };
 
     useEffect(() => {
-        // Demo mode: Use mock user
+        // Demo mode: Use mock user (unless user explicitly signed out)
         if (isDemoMode) {
+            const signedOut = localStorage.getItem('demo_signed_out');
+            if (signedOut === 'true') {
+                setLoading(false);
+                return;
+            }
             setUser(DEMO_USER);
             setProfile(DEMO_PROFILE);
             setLoading(false);
@@ -121,6 +126,9 @@ export function useAuth(): UseAuthReturn {
 
     const signOut = async () => {
         if (isDemoMode) {
+            localStorage.setItem('demo_signed_out', 'true');
+            setUser(null);
+            setProfile(null);
             router.push('/login');
             return;
         }
