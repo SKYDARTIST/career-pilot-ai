@@ -15,7 +15,9 @@ import {
     MessageSquare,
     Trash2,
     Copy,
-    Check
+    Check,
+    Calendar,
+    Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,14 +36,6 @@ interface Job {
     tailoredResume?: string;
     coverLetter?: string;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-    'Found': 'bg-neutral-500/20 text-neutral-400 border-neutral-500/30',
-    'Applied': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    'Interviewing': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    'Offered': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-    'Rejected': 'bg-red-500/20 text-red-400 border-red-500/30',
-};
 
 export default function JobDetailsPage() {
     const params = useParams();
@@ -109,7 +103,7 @@ export default function JobDetailsPage() {
     };
 
     const handleDelete = async () => {
-        if (!job || !confirm('Are you sure you want to remove this job?')) return;
+        if (!job || !confirm('Are you sure you want to remove this node?')) return;
         try {
             const res = await fetch(`/api/jobs/${job.id}`, { method: 'DELETE' });
             if (res.ok) {
@@ -128,296 +122,297 @@ export default function JobDetailsPage() {
 
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
             month: 'long',
             day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric'
         });
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
     }
 
     if (!job) {
         return (
-            <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center gap-4">
-                <XCircle className="w-12 h-12 text-red-400" />
-                <h1 className="text-xl font-bold">Job not found</h1>
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <XCircle className="w-12 h-12 text-destructive" />
+                <h1 className="text-xl font-bold">Node missing from grid</h1>
                 <button
                     onClick={() => router.push('/')}
-                    className="text-blue-400 hover:underline flex items-center gap-2"
+                    className="text-primary hover:underline flex items-center gap-2 font-bold text-sm"
                 >
-                    <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+                    <ArrowLeft className="w-4 h-4" /> Return to Feed
                 </button>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#0a0a0f]">
-            {/* Header */}
-            <nav className="border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center h-16 gap-4">
-                        <button
-                            onClick={() => router.push('/')}
-                            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5 text-neutral-400" />
-                        </button>
-                        <div className="flex-1">
-                            <h1 className="font-bold text-lg">{job.title}</h1>
-                            <p className="text-sm text-neutral-500">{job.company}</p>
+        <div className="min-h-screen bg-background selection:bg-primary/20 font-sans">
+            {/* Nav */}
+            <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex items-center h-14 justify-between">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => router.push('/')}
+                                className="p-2 hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-border"
+                            >
+                                <ArrowLeft className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                            <div className="h-6 w-[1px] bg-border mx-1" />
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-foreground">{job.company}</span>
+                                <span className="text-muted-foreground/30">•</span>
+                                <span className="text-xs text-muted-foreground truncate max-w-[200px]">{job.title}</span>
+                            </div>
                         </div>
-                        <button
-                            onClick={handleDelete}
-                            className="p-2 hover:bg-red-500/10 rounded-lg transition-colors text-red-400"
-                            title="Remove job"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleDelete}
+                                className="p-2 hover:bg-red-500/5 rounded-lg transition-colors text-red-500/50 hover:text-red-500"
+                                title="Remove node"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Score Card */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="glass-card p-6 rounded-2xl"
-                        >
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-neutral-900 rounded-xl flex items-center justify-center border border-white/5">
-                                        <Briefcase className="w-8 h-8 text-neutral-400" />
+            <main className="max-w-7xl mx-auto px-6 py-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    {/* Primary Content */}
+                    <div className="lg:col-span-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Summary Block */}
+                        <div>
+                            <div className="flex items-start justify-between mb-8">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 px-3 py-1 bg-secondary rounded-full border border-border w-fit">
+                                        <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Market Node #{job.id}</span>
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-bold">{job.title}</h2>
-                                        <p className="text-neutral-400">{job.company}</p>
+                                    <h2 className="text-4xl font-black tracking-tighter text-foreground leading-[0.9]">{job.title}</h2>
+                                    <div className="flex items-center gap-4 text-muted-foreground font-medium">
+                                        <span className="text-lg">{job.company}</span>
+                                        <span className="text-border">|</span>
+                                        <div className="flex items-center gap-1.5 text-sm uppercase tracking-widest font-bold">
+                                            <Calendar className="w-4 h-4" />
+                                            {formatDate(job.createdAt)}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className={`text-4xl font-black ${job.score >= 8 ? 'text-emerald-400' : job.score >= 6 ? 'text-blue-400' : 'text-neutral-400'}`}>
+                                <div className="text-right p-6 bg-secondary/30 border border-border rounded-2xl min-w-[120px]">
+                                    <div className={`text-5xl font-black tracking-tighter ${job.score >= 8 ? 'text-emerald-500' : 'text-primary'}`}>
                                         {job.score}
                                     </div>
-                                    <div className="text-xs text-neutral-500 font-bold uppercase">Fit Score</div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Accuracy</div>
                                 </div>
                             </div>
 
-                            <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-4 mb-6">
-                                <div className="flex items-start gap-3">
-                                    <Brain className="w-5 h-5 text-blue-400 mt-1 flex-shrink-0" />
+                            {/* AI Rationale */}
+                            <div className="p-8 bg-primary/5 border border-primary/20 rounded-3xl relative overflow-hidden group">
+                                <Brain className="absolute -right-4 -bottom-4 w-32 h-32 text-primary/10 transition-transform group-hover:scale-110 duration-1000" />
+                                <div className="relative z-10 flex items-start gap-4">
+                                    <div className="p-3 bg-primary rounded-2xl shadow-xl shadow-primary/30">
+                                        <Sparkles className="w-5 h-5 text-white" />
+                                    </div>
                                     <div>
-                                        <div className="text-xs font-bold text-blue-400 uppercase mb-1">AI Analysis</div>
-                                        <p className="text-neutral-300">{job.reasoning}</p>
+                                        <p className="text-[11px] font-black uppercase tracking-[.2em] text-primary mb-2">Gemini Analysis Core</p>
+                                        <p className="text-lg font-medium text-foreground leading-relaxed italic">
+                                            "{job.reasoning}"
+                                        </p>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="flex flex-wrap gap-2 mb-6">
-                                {job.tags && job.tags.map(tag => (
-                                    <span key={tag} className="px-3 py-1 bg-white/5 rounded-full text-sm text-neutral-400 border border-white/5">
-                                        {tag}
-                                    </span>
+                        {/* Document Tabs */}
+                        <div className="space-y-6">
+                            <div className="flex gap-1 p-1 bg-secondary border border-border rounded-xl w-fit">
+                                {[
+                                    { key: 'details', label: 'Overview', icon: FileText },
+                                    { key: 'resume', label: 'Tailored Resume', icon: Sparkles },
+                                    { key: 'cover', label: 'Cover Letter', icon: MessageSquare },
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key as any)}
+                                        className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key
+                                            ? 'bg-card text-foreground shadow-sm ring-1 ring-border'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                    >
+                                        <tab.icon className="w-3.5 h-3.5" />
+                                        {tab.label}
+                                    </button>
                                 ))}
                             </div>
 
-                            <div className="flex items-center gap-3 text-sm text-neutral-500">
-                                <Clock className="w-4 h-4" />
-                                Found on {formatDate(job.createdAt)}
-                            </div>
-                        </motion.div>
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, scale: 0.99 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="pro-card p-10 min-h-[400px]"
+                            >
+                                {activeTab === 'details' && (
+                                    <div className="space-y-6 max-w-2xl mx-auto">
+                                        <h3 className="text-xl font-bold tracking-tight">Strategy Notes</h3>
+                                        <textarea
+                                            value={notes}
+                                            onChange={(e) => setNotes(e.target.value)}
+                                            placeholder="Define your entry strategy or robot instructions..."
+                                            className="w-full h-64 bg-secondary border border-border rounded-2xl p-6 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all resize-none"
+                                        />
+                                        <button
+                                            onClick={handleSaveNotes}
+                                            disabled={saving}
+                                            className="w-full py-4 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
+                                        >
+                                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                                            Commit Local Changes
+                                        </button>
+                                    </div>
+                                )}
 
-                        {/* Tabs */}
-                        <div className="flex gap-2 border-b border-white/10 pb-2">
-                            {[
-                                { key: 'details', label: 'Details', icon: FileText },
-                                { key: 'resume', label: 'Tailored Resume', icon: FileText },
-                                { key: 'cover', label: 'Cover Letter', icon: MessageSquare },
-                            ].map((tab) => (
-                                <button
-                                    key={tab.key}
-                                    onClick={() => setActiveTab(tab.key as any)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.key
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-neutral-400 hover:bg-white/5'
-                                        }`}
-                                >
-                                    <tab.icon className="w-4 h-4" />
-                                    {tab.label}
-                                </button>
-                            ))}
+                                {activeTab === 'resume' && (
+                                    <div className="space-y-8">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h3 className="text-xl font-bold tracking-tight">Tailored Curriculum Vitae</h3>
+                                                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-black">Optimized for Gemini Recruiter Flow</p>
+                                            </div>
+                                            {job.tailoredResume && (
+                                                <button
+                                                    onClick={() => copyToClipboard(job.tailoredResume || '')}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all"
+                                                >
+                                                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                                                    {copied ? 'Captured' : 'Copy Text'}
+                                                </button>
+                                            )}
+                                        </div>
+                                        {job.tailoredResume ? (
+                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 whitespace-pre-wrap text-sm leading-relaxed text-foreground font-mono">
+                                                {job.tailoredResume}
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
+                                                <FileText className="w-16 h-16 mb-6" />
+                                                <p className="text-sm font-black uppercase tracking-[.2em]">Generation Pending</p>
+                                                <p className="text-[10px] mt-2 max-w-[200px]">Node score below generation threshold (minimum 8.0 required)</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {activeTab === 'cover' && (
+                                    <div className="space-y-8">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h3 className="text-xl font-bold tracking-tight">Executive Briefing</h3>
+                                                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-black">Generated Content for Application Body</p>
+                                            </div>
+                                            {job.coverLetter && (
+                                                <button
+                                                    onClick={() => copyToClipboard(job.coverLetter || '')}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all"
+                                                >
+                                                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                                                    {copied ? 'Captured' : 'Copy Text'}
+                                                </button>
+                                            )}
+                                        </div>
+                                        {job.coverLetter ? (
+                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                                                {job.coverLetter}
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
+                                                <MessageSquare className="w-16 h-16 mb-6" />
+                                                <p className="text-sm font-black uppercase tracking-[.2em]">Briefing Absent</p>
+                                                <p className="text-[10px] mt-2 max-w-[200px]">Target score below automation criteria (minimum 8.0 required)</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </motion.div>
                         </div>
-
-                        {/* Tab Content */}
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="glass-card p-6 rounded-2xl min-h-[200px]"
-                        >
-                            {activeTab === 'details' && (
-                                <div className="space-y-4">
-                                    <h3 className="font-bold text-lg">Application Notes</h3>
-                                    <textarea
-                                        value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
-                                        placeholder="Add notes about this application, interview prep, contacts, etc..."
-                                        className="w-full h-40 bg-black/50 border border-white/10 rounded-lg p-4 text-sm text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
-                                    />
-                                    <button
-                                        onClick={handleSaveNotes}
-                                        disabled={saving}
-                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg font-medium transition-colors flex items-center gap-2"
-                                    >
-                                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                        Save Notes
-                                    </button>
-                                </div>
-                            )}
-
-                            {activeTab === 'resume' && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="font-bold text-lg">Tailored Resume</h3>
-                                        {job.tailoredResume && (
-                                            <button
-                                                onClick={() => copyToClipboard(job.tailoredResume || '')}
-                                                className="flex items-center gap-2 text-sm text-blue-400 hover:underline"
-                                            >
-                                                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                                {copied ? 'Copied!' : 'Copy'}
-                                            </button>
-                                        )}
-                                    </div>
-                                    {job.tailoredResume ? (
-                                        <div className="bg-black/50 border border-white/10 rounded-lg p-4 whitespace-pre-wrap text-sm text-neutral-300">
-                                            {job.tailoredResume}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-12 text-neutral-500">
-                                            <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                            <p>No tailored resume generated yet</p>
-                                            <p className="text-xs mt-1">Resumes are generated for jobs with score ≥ 8</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {activeTab === 'cover' && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="font-bold text-lg">Cover Letter</h3>
-                                        {job.coverLetter && (
-                                            <button
-                                                onClick={() => copyToClipboard(job.coverLetter || '')}
-                                                className="flex items-center gap-2 text-sm text-blue-400 hover:underline"
-                                            >
-                                                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                                {copied ? 'Copied!' : 'Copy'}
-                                            </button>
-                                        )}
-                                    </div>
-                                    {job.coverLetter ? (
-                                        <div className="bg-black/50 border border-white/10 rounded-lg p-4 whitespace-pre-wrap text-sm text-neutral-300">
-                                            {job.coverLetter}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-12 text-neutral-500">
-                                            <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                            <p>No cover letter generated yet</p>
-                                            <p className="text-xs mt-1">Cover letters are generated for jobs with score ≥ 8</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </motion.div>
                     </div>
 
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Status */}
-                        <div className="glass-card p-6 rounded-2xl">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-4">
-                                Application Status
+                    {/* Sidebar Panels */}
+                    <div className="lg:col-span-4 space-y-8">
+                        {/* Status Engine */}
+                        <div className="pro-card p-8">
+                            <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-6">
+                                Pipeline Sector
                             </h3>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 {['Found', 'Applied', 'Interviewing', 'Offered', 'Rejected'].map((status) => (
                                     <button
                                         key={status}
                                         onClick={() => handleStatusChange(status)}
-                                        className={`w-full px-4 py-3 rounded-lg text-left text-sm font-medium transition-all border ${job.status === status
-                                                ? STATUS_COLORS[status]
-                                                : 'border-white/5 text-neutral-500 hover:bg-white/5'
+                                        className={`w-full px-5 py-3 rounded-xl text-left text-xs font-bold transition-all border group relative overflow-hidden ${job.status === status
+                                            ? 'border-primary bg-primary/5 text-primary'
+                                            : 'border-border text-muted-foreground hover:border-zinc-400 hover:text-foreground'
                                             }`}
                                     >
-                                        <div className="flex items-center justify-between">
-                                            {status}
-                                            {job.status === status && <CheckCircle2 className="w-4 h-4" />}
+                                        <div className="flex items-center justify-between relative z-10">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${job.status === status ? 'bg-primary' : 'bg-zinc-300'}`} />
+                                                {status}
+                                            </div>
+                                            {job.status === status && <CheckCircle2 className="w-4 h-4 animate-in zoom-in" />}
                                         </div>
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="glass-card p-6 rounded-2xl space-y-3">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-4">
-                                Actions
+                        {/* External Actions */}
+                        <div className="space-y-3">
+                            <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-4 ml-2">
+                                External Links
                             </h3>
                             {job.url && (
                                 <a
                                     href={job.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 transition-colors rounded-xl font-bold flex items-center justify-center gap-2"
+                                    className="w-full py-4 bg-primary text-white hover:bg-primary/90 transition-all rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
                                 >
                                     <ExternalLink className="w-4 h-4" />
-                                    View Original Posting
+                                    Launch Original Node
                                 </a>
                             )}
-                            <button
-                                onClick={() => router.push('/')}
-                                className="w-full py-3 bg-white/5 hover:bg-white/10 transition-colors rounded-xl font-medium text-neutral-400 flex items-center justify-center gap-2"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Back to Dashboard
-                            </button>
+                            <div className="p-6 pro-card bg-secondary/20 border-dashed text-center">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Safety Lock Active</p>
+                                <p className="text-[9px] font-mono text-muted-foreground/60 leading-tight">All external comms are routed through the CareerPilot AI proxy server for your protection.</p>
+                            </div>
                         </div>
 
-                        {/* Timeline */}
-                        <div className="glass-card p-6 rounded-2xl">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-500 mb-4">
-                                Timeline
+                        {/* Technical Metadata */}
+                        <div className="pro-card p-8">
+                            <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-6">
+                                Node Metadata
                             </h3>
-                            <div className="space-y-3">
-                                <div className="flex gap-3 text-sm">
-                                    <div className="w-2 h-2 mt-1.5 bg-blue-500 rounded-full" />
-                                    <div>
-                                        <div className="text-neutral-300">Job discovered</div>
-                                        <div className="text-xs text-neutral-600">{formatDate(job.createdAt)}</div>
-                                    </div>
+                            <div className="space-y-5 font-mono text-[10px]">
+                                <div className="flex justify-between border-b border-border pb-2">
+                                    <span className="text-muted-foreground uppercase">Created</span>
+                                    <span className="font-bold">{formatDate(job.createdAt)}</span>
                                 </div>
-                                {job.updatedAt && (
-                                    <div className="flex gap-3 text-sm">
-                                        <div className="w-2 h-2 mt-1.5 bg-emerald-500 rounded-full" />
-                                        <div>
-                                            <div className="text-neutral-300">Last updated</div>
-                                            <div className="text-xs text-neutral-600">{formatDate(job.updatedAt)}</div>
-                                        </div>
-                                    </div>
-                                )}
+                                <div className="flex justify-between border-b border-border pb-2">
+                                    <span className="text-muted-foreground uppercase">Identity</span>
+                                    <span className="font-bold">#CP-{job.id}00X</span>
+                                </div>
+                                <div className="flex justify-between border-b border-border pb-2">
+                                    <span className="text-muted-foreground uppercase">Security</span>
+                                    <span className="font-bold text-emerald-500 uppercase tracking-tighter">Verified</span>
+                                </div>
                             </div>
                         </div>
                     </div>

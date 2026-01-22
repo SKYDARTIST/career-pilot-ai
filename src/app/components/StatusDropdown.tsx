@@ -5,11 +5,11 @@ import { ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const STATUS_OPTIONS = [
-    { value: 'Found', label: 'Found', color: 'bg-neutral-500/20 text-neutral-400' },
-    { value: 'Applied', label: 'Applied', color: 'bg-emerald-500/20 text-emerald-400' },
-    { value: 'Interviewing', label: 'Interviewing', color: 'bg-blue-500/20 text-blue-400' },
-    { value: 'Offered', label: 'Offered', color: 'bg-purple-500/20 text-purple-400' },
-    { value: 'Rejected', label: 'Rejected', color: 'bg-red-500/20 text-red-400' },
+    { value: 'Found', label: 'Found', color: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500', dot: 'bg-zinc-400' },
+    { value: 'Applied', label: 'Applied', color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-500', dot: 'bg-emerald-500' },
+    { value: 'Interviewing', label: 'Interviewing', color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-500', dot: 'bg-blue-500' },
+    { value: 'Offered', label: 'Offered', color: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-500', dot: 'bg-purple-500' },
+    { value: 'Rejected', label: 'Rejected', color: 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500', dot: 'bg-red-500' },
 ];
 
 interface StatusDropdownProps {
@@ -47,27 +47,31 @@ export default function StatusDropdown({ jobId, currentStatus, onStatusChange }:
     };
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative" ref={dropdownRef} onClick={(e) => e.stopPropagation()}>
             <button
                 onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault();
                     setIsOpen(!isOpen);
                 }}
-                className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all ${currentOption.color} hover:ring-2 hover:ring-white/10`}
+                className={`text-[10px] font-bold uppercase tracking-tight px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all border border-border bg-card hover:bg-secondary active:scale-95`}
             >
-                {currentOption.label}
-                <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${currentOption.dot}`} />
+                <span className="text-foreground">{currentOption.label}</span>
+                <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 5, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full mt-2 z-50 min-w-[140px] bg-neutral-900 border border-white/10 rounded-lg shadow-xl overflow-hidden"
+                        exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                        transition={{ duration: 0.1 }}
+                        className="absolute right-0 top-full mt-2 z-[60] min-w-[160px] bg-card border border-border rounded-xl shadow-2xl overflow-hidden py-1.5"
                     >
+                        <div className="px-3 py-1.5 border-b border-border mb-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Change Node Status</span>
+                        </div>
                         {STATUS_OPTIONS.map((option) => (
                             <button
                                 key={option.value}
@@ -75,14 +79,16 @@ export default function StatusDropdown({ jobId, currentStatus, onStatusChange }:
                                     e.stopPropagation();
                                     handleSelect(option.value);
                                 }}
-                                className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between hover:bg-white/5 transition-colors ${option.value === status ? 'bg-white/5' : ''
-                                    }`}
+                                className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between hover:bg-secondary transition-colors group ${option.value === status ? 'bg-secondary/50' : ''}`}
                             >
-                                <span className={`px-2 py-0.5 rounded-full ${option.color}`}>
-                                    {option.label}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${option.dot} opacity-60 group-hover:opacity-100 transition-opacity`} />
+                                    <span className={`font-medium ${option.value === status ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                                        {option.label}
+                                    </span>
+                                </div>
                                 {option.value === status && (
-                                    <Check className="w-3 h-3 text-emerald-400" />
+                                    <Check className="w-3 h-3 text-primary" />
                                 )}
                             </button>
                         ))}

@@ -7,44 +7,89 @@
   --color-secondary: var(--secondary);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --color-destructive: var(--destructive);
   --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #020817;
-  --primary: #3b82f6;
-  --secondary: #f1f5f9;
-  --muted: #f1f5f9;
-  --accent: #f1f5f9;
-  --destructive: #ef4444;
-  --border: #e2e8f0;
+  /* Light Mode - Professional Minimalist */
+  --background: #fafafa;
+  --foreground: #09090b;
+  --primary: #2563eb; /* Google Blue inspired */
+  --secondary: #f4f4f5;
+  --muted: #f4f4f5;
+  --accent: #2563eb;
+  --border: #e4e4e7;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+}
+
+/* We will default to a high-end "Soft Dark" that is not too deep */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #09090b;
+    --foreground: #fafafa;
+    --primary: #3b82f6;
+    --secondary: #18181b;
+    --muted: #18181b;
+    --accent: #3b82f6;
+    --border: #27272a;
+    --card: #09090b;
+    --card-foreground: #fafafa;
+  }
 }
 
 .dark {
-  --background: #020817;
-  --foreground: #f8fafc;
+  --background: #09090b;
+  --foreground: #fafafa;
   --primary: #3b82f6;
-  --secondary: #1e293b;
-  --muted: #1e293b;
-  --accent: #1e293b;
-  --destructive: #7f1d1d;
-  --border: #1e293b;
+  --secondary: #18181b;
+  --muted: #18181b;
+  --accent: #3b82f6;
+  --border: #27272a;
+  --card: #09090b;
+  --card-foreground: #fafafa;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
 }
 
-.glass-card {
-  background-color: rgba(255, 255, 255, 0.05);
+/* Professional Utilities */
+.pro-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pro-card-hover:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
+}
+
+.glass-nav {
+  background-color: rgba(var(--background-rgb), 0.7);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border);
 }
 
-.dark .glass-card {
-  background-color: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.chip-blue {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.chip-green {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Custom Gradients */
+.bg-gradient-pro {
+  background: linear-gradient(135deg, var(--background) 0%, var(--secondary) 100%);
 }
