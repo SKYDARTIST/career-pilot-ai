@@ -1,7 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+const API_KEY = process.env.CAREER_PILOT_API_KEY || 'career-pilot-secret-key';
+
+// Helper to check if request is from n8n with API key
+function isApiKeyValid(request: Request): boolean {
+    const apiKey = request.headers.get('X-API-Key');
+    return apiKey === API_KEY;
+}
 
 // Demo preferences
 const DEMO_PREFERENCES = {
@@ -22,34 +29,52 @@ const DEMO_PREFERENCES = {
     profile: {
         name: 'Demo User',
         targetRole: 'AI Engineer',
+        skills: 'n8n automation\nGemini 2.0 API\nNext.js, TypeScript',
         yearsExperience: 5,
     },
 };
 
-export async function GET() {
+
+export async function GET(request: Request) {
     if (isDemoMode) {
         return NextResponse.json(DEMO_PREFERENCES);
     }
 
     try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const { searchParams } = new URL(request.url);
+        const requestUserId = searchParams.get('userId');
 
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        let userId: string;
+        let supabase;
+
+        // Check for API key auth (from n8n)
+        if (isApiKeyValid(request)) {
+            if (!requestUserId) {
+                return NextResponse.json({ error: 'userId parameter required for API key auth' }, { status: 400 });
+            }
+            supabase = await createAdminClient();
+            userId = requestUserId;
+        } else {
+            // Browser session auth
+            supabase = await createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+            userId = user.id;
         }
 
         // Get profile and preferences
         const [profileResult, prefsResult] = await Promise.all([
-            supabase.from('profiles').select('*').eq('id', user.id).single(),
-            supabase.from('preferences').select('*').eq('user_id', user.id).single(),
+            supabase.from('profiles').select('*').eq('id', userId).single(),
+            supabase.from('preferences').select('*').eq('user_id', userId).single(),
         ]);
 
         const profile = profileResult.data;
         const prefs = prefsResult.data;
 
         return NextResponse.json({
-            email: profile?.email || user.email,
+            email: profile?.email || '',
             filters: {
                 minScore: prefs?.min_score || 7,
                 locations: prefs?.locations || [],
@@ -66,6 +91,7 @@ export async function GET() {
             profile: {
                 name: profile?.full_name || '',
                 targetRole: profile?.target_role || '',
+                skills: profile?.skills || '',
                 yearsExperience: profile?.years_experience,
             },
         });
@@ -96,6 +122,7 @@ export async function PUT(request: Request) {
             .update({
                 full_name: prefs.profile?.name,
                 target_role: prefs.profile?.targetRole,
+                skills: prefs.profile?.skills,
                 years_experience: prefs.profile?.yearsExperience,
                 updated_at: new Date().toISOString(),
             })

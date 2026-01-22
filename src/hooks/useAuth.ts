@@ -129,14 +129,14 @@ export function useAuth(): UseAuthReturn {
             localStorage.setItem('demo_signed_out', 'true');
             setUser(null);
             setProfile(null);
-            router.push('/login');
+            window.location.href = '/login';
             return;
         }
 
         await supabase.auth.signOut();
         setUser(null);
         setProfile(null);
-        router.push('/login');
+        window.location.href = '/login';
     };
 
     return { user, profile, loading, signOut, refreshProfile };

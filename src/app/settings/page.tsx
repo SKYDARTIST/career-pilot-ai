@@ -39,6 +39,7 @@ interface Preferences {
     profile: {
         name: string;
         targetRole: string;
+        skills: string;
         yearsExperience: number | null;
     };
 }
@@ -150,7 +151,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between h-14">
                         <div className="flex items-center gap-4">
                             <button
-                                onClick={() => router.push('/')}
+                                onClick={() => router.push('/dashboard')}
                                 className="p-2 hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-border"
                             >
                                 <ArrowLeft className="w-4 h-4 text-muted-foreground" />
@@ -247,6 +248,19 @@ export default function SettingsPage() {
                                             })}
                                             placeholder="AI Engineer, Data Scientist, etc."
                                             className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all font-medium"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Core Skills (One per line)</label>
+                                        <textarea
+                                            value={prefs.profile.skills}
+                                            onChange={(e) => setPrefs({
+                                                ...prefs,
+                                                profile: { ...prefs.profile, skills: e.target.value }
+                                            })}
+                                            placeholder="Next.js&#10;TypeScript&#10;n8n Automation"
+                                            rows={5}
+                                            className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all font-medium resize-none"
                                         />
                                     </div>
                                 </div>

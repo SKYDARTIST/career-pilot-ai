@@ -67,6 +67,13 @@ export default function LoginPage() {
         }
     };
 
+    const handleDemoLogin = () => {
+        localStorage.removeItem('demo_signed_out');
+        window.location.href = '/dashboard';
+    };
+
+    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
     return (
         <div className="min-h-screen bg-background bg-mesh-light dark:bg-mesh-dark flex items-center justify-center p-6 selection:bg-primary/20 relative overflow-hidden">
             {/* Theme Toggle for Auth Pages */}
@@ -186,6 +193,15 @@ export default function LoginPage() {
                         </svg>
                         Sign in with Google
                     </button>
+
+                    {isDemoMode && (
+                        <button
+                            onClick={handleDemoLogin}
+                            className="w-full mt-3 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl font-bold text-xs text-primary flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                        >
+                            🚀 Enter Demo Mode
+                        </button>
+                    )}
 
                     <div className="mt-8 pt-6 border-t border-border/50 text-center">
                         <p className="text-xs text-muted-foreground font-medium">

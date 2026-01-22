@@ -55,8 +55,9 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Redirect logged-in users from landing page and auth pages to dashboard
+    // Skip this in demo mode - let client-side handle it
     const authPaths = ['/', '/login', '/signup'];
-    if (user && authPaths.includes(request.nextUrl.pathname)) {
+    if (!isDemoMode && user && authPaths.includes(request.nextUrl.pathname)) {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard';
         return NextResponse.redirect(url);

@@ -207,7 +207,11 @@ export default function Dashboard() {
                         Account Settings
                       </a>
                       <button
-                        onClick={signOut}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          signOut();
+                        }}
                         className="w-full px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/5 flex items-center gap-2 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />

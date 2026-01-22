@@ -1,7 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+const API_KEY = process.env.CAREER_PILOT_API_KEY || 'career-pilot-secret-key';
+
+// Helper to check if request is from n8n with API key
+function isApiKeyValid(request: Request): boolean {
+    const apiKey = request.headers.get('X-API-Key');
+    return apiKey === API_KEY;
+}
 
 // Demo data for hackathon demo mode
 const DEMO_JOBS = [
@@ -111,19 +118,33 @@ export async function POST(request: Request) {
     }
 
     try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const jobData = await request.json();
+        let userId: string;
+        let supabase;
+
+        // Check for API key auth (from n8n)
+        if (isApiKeyValid(request)) {
+            // Use admin client to bypass RLS
+            supabase = await createAdminClient();
+            // n8n must provide user_id in the request body
+            if (!jobData.user_id) {
+                return NextResponse.json({ error: 'user_id required for API key auth' }, { status: 400 });
+            }
+            userId = jobData.user_id;
+        } else {
+            // Browser session auth
+            supabase = await createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+            userId = user.id;
+        }
 
         const { data, error } = await supabase
             .from('jobs')
             .insert({
-                user_id: user.id,
+                user_id: userId,
                 title: jobData.title,
                 company: jobData.company,
                 url: jobData.url,
