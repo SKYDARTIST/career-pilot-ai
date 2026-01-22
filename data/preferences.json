@@ -1,0 +1,21 @@
+{
+  "email": "",
+  "filters": {
+    "minScore": 7,
+    "locations": [],
+    "salaryMin": null,
+    "salaryMax": null,
+    "jobTypes": ["Full-time", "Contract", "Remote", "Internship"]
+  },
+  "notifications": {
+    "emailEnabled": false,
+    "dailyDigest": true,
+    "instantAlerts": false,
+    "minScoreForAlert": 8
+  },
+  "profile": {
+    "name": "",
+    "targetRole": "",
+    "yearsExperience": null
+  }
+}

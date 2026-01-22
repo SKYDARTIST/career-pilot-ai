@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareerPilot AI - The Job Application Robot
 
-## Getting Started
+An autonomous agent that manages the end-to-end job application process using Gemini 3 and n8n.
 
-First, run the development server:
+## How it Works
+1. **Discovery**: A recurring n8n workflow scrapes job boards (or uses APIs) to find new listings.
+2. **Analysis**: Gemini 3 reads each job description and cross-references it with your `master-resume.md`.
+3. **Scoring**: A "Fit Score" (1-10) is assigned based on skills, culture, and preferences.
+4. **Tailoring**: For jobs with a score > 8, Gemini 3 creates a bespoke resume and cover letter.
+5. **Action**: The agent prepares the application and notifies you via a Daily Digest.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Project Structure
+- `workflows/`: Exported n8n `.json` files.
+- `prompts/`: System prompts for Gemini 3.
+- `data/`: Your master resume and tracked applications.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## How to Use This Project
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Step 1: Initialize Your Data
+Open [master-resume.md](file:///Users/cryptobulla/.gemini/antigravity/scratch/career-pilot-ai/data/master-resume.md) and fill in your actual professional details. This is what the AI uses to customize your applications.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Step 2: Import Workflow to n8n
+1. Open your n8n instance.
+2. Go to **Workflows** > **Import from File**.
+3. Select [job-discovery.json](file:///Users/cryptobulla/.gemini/antigravity/scratch/career-pilot-ai/workflows/job-discovery.json).
+4. **Important**: Replace the `PLACEHOLDER` in the LinkedIn Scraper node with your own API key (e.g., from Scrapingdog or similar).
 
-## Learn More
+### Step 3: Set Up Gemini 3
+Ensure you have your **Gemini API Key** connected in n8n. The workflow is configured to use the Pro model to analyze and score jobs.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Step 4: Run the Marathon Agent
+Activate the workflow. It will now run autonomously, searching for jobs and notifying you only of the ones that are a "High Fidelity" match!

@@ -1,0 +1,124 @@
+{
+    "name": "CareerPilot AI: Job Discovery & Scoring",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hour",
+                            "interval": 6
+                        }
+                    ]
+                }
+            },
+            "name": "Cron Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [
+                440,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://api.scrapingdog.com/linkedinjobs?api_key=PLACEHOLDER&field=software+engineer",
+                "options": {}
+            },
+            "name": "LinkedIn Scraper",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                660,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gemini-pro-vision",
+                "prompt": "={{$node[\"Read Culture Prompt\"].json[\"text\"]}} \n\nAnalyze the attached company images and logo in context of this JD: {{$json[\"description\"]}}",
+                "options": {
+                    "temperature": 0.4
+                }
+            },
+            "name": "Gemini: Culture Check",
+            "type": "n8n-nodes-base.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                900,
+                450
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gemini-pro",
+                "prompt": "={{$node[\"Read Scorer Prompt\"].json[\"text\"]}} \n\nResume: {{$node[\"Get Master Resume\"].json[\"content\"]}} \n\nJD: {{$node[\"LinkedIn Scraper\"].json[\"description\"]}} \n\nCulture Vibes: {{$node[\"Gemini: Culture Check\"].json[\"vibe_tags\"]}}",
+                "options": {
+                    "temperature": 0.7
+                }
+            },
+            "name": "Gemini: Score Job",
+            "type": "n8n-nodes-base.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                1120,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "number": [
+                        {
+                            "value1": "={{$json[\"score\"]}}",
+                            "operation": "largerEqual",
+                            "value2": 8
+                        }
+                    ]
+                }
+            },
+            "name": "Score >= 8?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                1340,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Cron Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "LinkedIn Scraper",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "LinkedIn Scraper": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini: Score Job",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini: Score Job": {
+            "main": [
+                [
+                    {
+                        "node": "Score >= 8?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

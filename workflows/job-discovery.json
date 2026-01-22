@@ -1,0 +1,196 @@
+{
+    "name": "CareerPilot AI: The Ultimate Marathon",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hour",
+                            "interval": 6
+                        }
+                    ]
+                }
+            },
+            "name": "Cron Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [
+                440,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://api.scrapingdog.com/linkedinjobs?api_key=69708c74371371de6b711c06&field=software+engineer",
+                "options": {}
+            },
+            "name": "LinkedIn Scraper",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                660,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "models/gemini-2.0-flash",
+                "prompt": "=Analyze the company logo and office vibe. \n\nJOB DATA: \n{{ $json[\"job_position\"] }} at {{ $json[\"company_name\"] }}\n\nINSTRUCTIONS: \n1. Identify 3 culture vibe tags (e.g. #ActionEra, #FastPaced, #Innovation).\n2. Is this a traditional or modern office environment?",
+                "options": {}
+            },
+            "name": "Analyze an image",
+            "type": "n8n-nodes-base.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                900,
+                450
+            ],
+            "parameters": {
+                "resource": "image",
+                "imageUrls": "={{ $node[\"LinkedIn Scraper\"].json[\"company_logo_url\"] }}"
+            }
+        },
+        {
+            "parameters": {
+                "model": "models/gemini-2.0-flash",
+                "prompt": "=Analyze this job against my profile and provide a detailed fit score (1-10).\n\nMY BACKGROUND:\nExpert AI Automation Engineer. Skills: n8n, Gemini 2.0 API, Next.js, TypeScript, Solidity. Projects: Vibe Code Verifier, CareerPilot AI.\n\nJOB DESCRIPTION:\n{{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\n\nCULTURE VIBES:\n{{ $node[\"Analyze an image\"].json[\"text\"] }}\n\nINSTRUCTIONS:\n1. Generate a reasoning chain in <thought_signature> tags.\n2. Provide a score (1-10).\n3. Output a JSON with fields: \"thought_signature\", \"score\", \"reasoning_summary\", \"decision\" (APPLY/SKIP).",
+                "options": {}
+            },
+            "name": "Message a model",
+            "type": "n8n-nodes-base.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                1120,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "number": [
+                        {
+                            "value1": "={{ $node[\"Message a model\"].json[\"score\"] }}",
+                            "operation": "largerEqual",
+                            "value2": 8
+                        }
+                    ]
+                }
+            },
+            "name": "Score >= 8?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                1340,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:3001/api/jobs",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "title",
+                            "value": "={{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }}"
+                        },
+                        {
+                            "name": "company",
+                            "value": "={{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}"
+                        },
+                        {
+                            "name": "score",
+                            "value": "={{ $node[\"Message a model\"].json[\"score\"] || 8 }}"
+                        },
+                        {
+                            "name": "reasoning",
+                            "value": "={{ $node[\"Message a model\"].json[\"reasoning_summary\"] || \"Analyzing fit...\" }}"
+                        },
+                        {
+                            "name": "url",
+                            "value": "={{ $node[\"LinkedIn Scraper\"].json[\"job_link\"] }}"
+                        },
+                        {
+                            "name": "tags",
+                            "value": "[ \"#ActionEra\", \"#Gemini2\" ]"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Push to Dashboard",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                1560,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Cron Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "LinkedIn Scraper",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "LinkedIn Scraper": {
+            "main": [
+                [
+                    {
+                        "node": "Analyze an image",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Message a model",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analyze an image": {
+            "main": [
+                [
+                    {
+                        "node": "Message a model",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Message a model": {
+            "main": [
+                [
+                    {
+                        "node": "Score >= 8?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Score >= 8?": {
+            "main": [
+                [
+                    {
+                        "node": "Push to Dashboard",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
