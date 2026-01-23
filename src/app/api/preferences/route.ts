@@ -31,6 +31,7 @@ const DEMO_PREFERENCES = {
         targetRole: 'AI Engineer',
         skills: 'n8n automation\nGemini 2.0 API\nNext.js, TypeScript',
         yearsExperience: 5,
+        workHistory: 'Senior AI Automation Engineer at TechFlow (2020-2024). Lead developer for Gemini-based workflows.',
     },
 };
 
@@ -93,6 +94,7 @@ export async function GET(request: Request) {
                 targetRole: profile?.target_role || '',
                 skills: profile?.skills || '',
                 yearsExperience: profile?.years_experience,
+                workHistory: profile?.work_history || '',
             },
         });
     } catch (error) {
@@ -107,6 +109,7 @@ export async function PUT(request: Request) {
     }
 
     try {
+        // First get user from regular client for auth
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -114,24 +117,33 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Use admin client to bypass RLS for writes
+        const adminClient = await createAdminClient();
         const prefs = await request.json();
 
-        // Update profile
-        await supabase
+        // Upsert profile (using admin to bypass RLS)
+        const { error: profileError } = await adminClient
             .from('profiles')
-            .update({
+            .upsert({
+                id: user.id,
+                email: user.email,
                 full_name: prefs.profile?.name,
                 target_role: prefs.profile?.targetRole,
                 skills: prefs.profile?.skills,
                 years_experience: prefs.profile?.yearsExperience,
+                work_history: prefs.profile?.workHistory,
                 updated_at: new Date().toISOString(),
-            })
-            .eq('id', user.id);
+            }, { onConflict: 'id' });
 
-        // Update preferences
-        await supabase
+        if (profileError) {
+            console.error('Profile upsert error:', profileError);
+        }
+
+        // Upsert preferences (using admin to bypass RLS)
+        const { error: prefsError } = await adminClient
             .from('preferences')
-            .update({
+            .upsert({
+                user_id: user.id,
                 min_score: prefs.filters?.minScore,
                 locations: prefs.filters?.locations,
                 salary_min: prefs.filters?.salaryMin,
@@ -141,8 +153,11 @@ export async function PUT(request: Request) {
                 daily_digest: prefs.notifications?.dailyDigest,
                 instant_alerts: prefs.notifications?.instantAlerts,
                 updated_at: new Date().toISOString(),
-            })
-            .eq('user_id', user.id);
+            }, { onConflict: 'user_id' });
+
+        if (prefsError) {
+            console.error('Preferences upsert error:', prefsError);
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {
@@ -150,3 +165,4 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
+

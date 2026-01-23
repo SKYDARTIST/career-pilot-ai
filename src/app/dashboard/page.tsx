@@ -49,6 +49,7 @@ const FILTER_TABS = [
   { key: 'Applied', label: 'Applied' },
   { key: 'Interviewing', label: 'Interviewing' },
   { key: 'Offered', label: 'Offered' },
+  { key: 'Rejected', label: 'Rejected' },
 ];
 
 export default function Dashboard() {
@@ -59,6 +60,7 @@ export default function Dashboard() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [notes, setNotes] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [minScore, setMinScore] = useState(0);
 
   useEffect(() => {
     fetchJobs();
@@ -68,28 +70,53 @@ export default function Dashboard() {
 
   async function fetchJobs() {
     try {
-      const res = await fetch('/api/jobs');
-      const data = await res.json();
-      setJobs(Array.isArray(data) ? data : []);
+      // Fetch both jobs and preferences
+      const [jobsRes, prefsRes] = await Promise.all([
+        fetch('/api/jobs'),
+        fetch('/api/preferences')
+      ]);
+
+      const jobsData = await jobsRes.json();
+      const prefsData = await prefsRes.json();
+
+      setJobs(Array.isArray(jobsData) ? jobsData : []);
+      setMinScore(prefsData.filters?.minScore || 0);
     } catch (error) {
-      console.error("Failed to fetch jobs:", error);
+      console.error("Failed to fetch jobs or preferences:", error);
     } finally {
       setLoading(false);
     }
   }
 
   const stats = useMemo(() => {
-    const total = jobs.length;
-    const highFit = jobs.filter(j => j.score >= 8).length;
-    const applied = jobs.filter(j => j.status === 'Applied').length;
-    const interviewing = jobs.filter(j => j.status === 'Interviewing').length;
+    // Stats should only reflect what the user actually sees (above threshold)
+    const visibleJobs = jobs.filter(j => j.score >= minScore && j.status !== 'Rejected');
+
+    const total = visibleJobs.length;
+    const highFit = visibleJobs.filter(j => j.score >= 8).length;
+    const applied = visibleJobs.filter(j => j.status === 'Applied').length;
+    const interviewing = visibleJobs.filter(j => j.status === 'Interviewing').length;
     return { total, highFit, applied, interviewing };
-  }, [jobs]);
+  }, [jobs, minScore]);
 
   const filteredJobs = useMemo(() => {
-    if (activeFilter === 'all') return jobs;
-    return jobs.filter(job => job.status === activeFilter);
-  }, [jobs, activeFilter]);
+    // Stage 1: Filter by score threshold
+    const aboveThreshold = jobs.filter(job => job.score >= minScore);
+
+    // Stage 2: Filter by tab status
+    if (activeFilter === 'all') {
+      // Exclude Rejected jobs from "All Jobs" tab to keep it focused
+      // and only show those above threshold
+      return jobs.filter(job => job.score >= minScore && job.status !== 'Rejected');
+    }
+
+    if (activeFilter === 'Rejected') {
+      // Show ALL rejected jobs regardless of score in the specialized tab
+      return jobs.filter(job => job.status === 'Rejected');
+    }
+
+    return jobs.filter(job => job.status === activeFilter && job.score >= minScore);
+  }, [jobs, activeFilter, minScore]);
 
   const handleStatusChange = async (jobId: number, newStatus: string) => {
     try {
@@ -126,6 +153,63 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Failed to save notes:', error);
+    }
+  };
+
+  const handleClearLowScores = async () => {
+    const jobsToRemove = jobs.filter(j => j.score < minScore || j.status === 'Rejected');
+    if (jobsToRemove.length === 0) return;
+
+    if (!confirm(`This will permanently remove ${jobsToRemove.length} jobs (those below ${minScore}/10 or marked as Rejected). Continue?`)) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/jobs/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: jobsToRemove.map(j => j.id) })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Bulk delete failed');
+      }
+
+      fetchJobs();
+    } catch (error) {
+      console.error('Failed to clear jobs:', error);
+      alert(`Error clearing jobs: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetFeed = async () => {
+    if (jobs.length === 0) return;
+
+    if (!confirm(`WARING: This will PERMANENTLY delete ALL ${jobs.length} jobs in your feed. This cannot be undone. Are you sure you want to start fresh?`)) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/jobs/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: jobs.map(j => j.id) })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Reset failed');
+      }
+
+      setJobs([]);
+      // Refresh to ensure sync
+      fetchJobs();
+    } catch (error) {
+      console.error('Failed to reset feed:', error);
+      alert(`Error resetting feed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -260,7 +344,14 @@ export default function Dashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex p-1 bg-secondary border border-border rounded-xl w-fit">
             {FILTER_TABS.map((tab) => {
-              const count = tab.key === 'all' ? jobs.length : jobs.filter(j => j.status === tab.key).length;
+              let count;
+              if (tab.key === 'all') {
+                count = jobs.filter(j => j.score >= minScore && j.status !== 'Rejected').length;
+              } else if (tab.key === 'Rejected') {
+                count = jobs.filter(j => j.status === 'Rejected').length;
+              } else {
+                count = jobs.filter(j => j.status === tab.key && j.score >= minScore).length;
+              }
               return (
                 <button
                   key={tab.key}
@@ -287,6 +378,34 @@ export default function Dashboard() {
               className="pl-10 pr-4 py-2 bg-card border border-border rounded-xl text-xs focus:ring-1 focus:ring-primary focus:outline-none w-full md:w-64 transition-all group-hover:border-zinc-400"
             />
           </div>
+
+          <div className="flex flex-col items-end gap-2 text-right">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary border border-border rounded-lg">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Threshold</span>
+              <span className="text-xs font-black text-primary font-mono">{minScore}.0</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {jobs.length > 0 && (
+                <button
+                  onClick={handleResetFeed}
+                  className="px-4 py-2 bg-zinc-500/10 hover:bg-zinc-500/20 text-muted-foreground hover:text-foreground border border-border rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+                  title="Wipe all historical data"
+                >
+                  <LogOut className="w-3 h-3 rotate-180" />
+                  Reset Feed
+                </button>
+              )}
+              {jobs.some(j => j.score < minScore || j.status === 'Rejected') && (
+                <button
+                  onClick={handleClearLowScores}
+                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Clean Dashboard ({jobs.filter(j => j.score < minScore || j.status === 'Rejected').length})
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -312,7 +431,7 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="glass-card p-6 group pro-card-hover relative overflow-hidden"
+                    className="glass-card p-6 group pro-card-hover relative"
                   >
                     {/* Score Indicator */}
                     <div className="absolute top-0 left-0 w-1 h-full bg-border group-hover:bg-primary transition-colors" />
@@ -345,7 +464,11 @@ export default function Dashboard() {
 
                       <div className="py-3 px-4 bg-secondary/50 rounded-xl border border-border/50 mb-5 relative group/quote">
                         <div className="text-xs text-foreground italic leading-relaxed line-clamp-2 pr-6">
-                          "{job.reasoning}"
+                          {job.reasoning ? (
+                            `"${job.reasoning}"`
+                          ) : (
+                            <span className="opacity-50 font-normal not-italic">Node active. Analysis protocol initiated... awaiting next scan cycle.</span>
+                          )}
                         </div>
                         <Brain className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/30 group-hover/quote:text-primary transition-colors" />
                       </div>
@@ -437,37 +560,39 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </main>
+      </main >
 
       {/* Note Modal */}
       <AnimatePresence>
-        {selectedJob && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setSelectedJob(null)} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl p-8"
-            >
-              <h3 className="text-xl font-bold tracking-tight mb-1">{selectedJob.company}</h3>
-              <p className="text-sm text-muted-foreground mb-6">{selectedJob.title}</p>
+        {
+          selectedJob && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setSelectedJob(null)} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl p-8"
+              >
+                <h3 className="text-xl font-bold tracking-tight mb-1">{selectedJob.company}</h3>
+                <p className="text-sm text-muted-foreground mb-6">{selectedJob.title}</p>
 
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Log internal communication or agent instructions..."
-                className="w-full h-40 bg-secondary border border-border rounded-xl p-4 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all"
-              />
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Log internal communication or agent instructions..."
+                  className="w-full h-40 bg-secondary border border-border rounded-xl p-4 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                />
 
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => setSelectedJob(null)} className="flex-1 py-3 bg-secondary hover:bg-border rounded-xl text-sm font-bold transition-colors">Discard</button>
-                <button onClick={handleSaveNotes} className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20">Commit Changes</button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                <div className="flex gap-3 mt-6">
+                  <button onClick={() => setSelectedJob(null)} className="flex-1 py-3 bg-secondary hover:bg-border rounded-xl text-sm font-bold transition-colors">Discard</button>
+                  <button onClick={handleSaveNotes} className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20">Commit Changes</button>
+                </div>
+              </motion.div>
+            </div>
+          )
+        }
+      </AnimatePresence >
 
       <footer className="border-t border-border py-8 bg-card/50">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -480,6 +605,6 @@ export default function Dashboard() {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 }

@@ -192,43 +192,52 @@ export default function JobDetailsPage() {
                     {/* Primary Content */}
                     <div className="lg:col-span-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Summary Block */}
-                        <div>
-                            <div className="flex items-start justify-between mb-8">
-                                <div className="space-y-4">
+                        <div className="flex items-start justify-between mb-8">
+                            <div className="space-y-4">
+                                <div className="flex flex-wrap gap-2 mb-2">
                                     <div className="flex items-center gap-2 px-3 py-1 bg-secondary rounded-full border border-border w-fit">
                                         <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Market Node #{job.id}</span>
                                     </div>
-                                    <h2 className="text-4xl font-black tracking-tighter text-foreground leading-[0.9]">{job.title}</h2>
-                                    <div className="flex items-center gap-4 text-muted-foreground font-medium">
-                                        <span className="text-lg">{job.company}</span>
-                                        <span className="text-border">|</span>
-                                        <div className="flex items-center gap-1.5 text-sm uppercase tracking-widest font-bold">
-                                            <Calendar className="w-4 h-4" />
-                                            {formatDate(job.createdAt)}
+                                    {job.tags && job.tags.map((tag, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 px-3 py-1 bg-primary/5 rounded-full border border-primary/10 w-fit">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{tag}</span>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
-                                <div className="text-right p-6 bg-secondary/30 border border-border rounded-2xl min-w-[120px]">
-                                    <div className={`text-5xl font-black tracking-tighter ${job.score >= 8 ? 'text-emerald-500' : 'text-primary'}`}>
-                                        {job.score}
+                                <h2 className="text-4xl font-black tracking-tighter text-foreground leading-[0.9]">{job.title}</h2>
+                                <div className="flex items-center gap-4 text-muted-foreground font-medium">
+                                    <span className="text-lg">{job.company}</span>
+                                    <span className="text-border">|</span>
+                                    <div className="flex items-center gap-1.5 text-sm uppercase tracking-widest font-bold">
+                                        <Calendar className="w-4 h-4" />
+                                        {formatDate(job.createdAt)}
                                     </div>
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Accuracy</div>
                                 </div>
                             </div>
+                            <div className="text-right p-6 bg-secondary/30 border border-border rounded-2xl min-w-[120px]">
+                                <div className={`text-5xl font-black tracking-tighter ${job.score >= 8 ? 'text-emerald-500' : 'text-primary'}`}>
+                                    {job.score}
+                                </div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Accuracy</div>
+                            </div>
+                        </div>
 
-                            {/* AI Rationale */}
-                            <div className="p-8 bg-primary/5 border border-primary/20 rounded-3xl relative overflow-hidden group">
-                                <Brain className="absolute -right-4 -bottom-4 w-32 h-32 text-primary/10 transition-transform group-hover:scale-110 duration-1000" />
-                                <div className="relative z-10 flex items-start gap-4">
-                                    <div className="p-3 bg-primary rounded-2xl shadow-xl shadow-primary/30">
-                                        <Sparkles className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[11px] font-black uppercase tracking-[.2em] text-primary mb-2">Gemini Analysis Core</p>
-                                        <p className="text-lg font-medium text-foreground leading-relaxed italic">
-                                            "{job.reasoning}"
-                                        </p>
+                        {/* AI Rationale */}
+                        <div className="p-8 bg-primary/5 border border-primary/20 rounded-3xl relative overflow-hidden group">
+                            <Brain className="absolute -right-4 -bottom-4 w-32 h-32 text-primary/10 transition-transform group-hover:scale-110 duration-1000" />
+                            <div className="relative z-10 flex items-start gap-4">
+                                <div className="p-3 bg-primary rounded-2xl shadow-xl shadow-primary/30">
+                                    <Sparkles className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[11px] font-black uppercase tracking-[.2em] text-primary mb-2">Gemini Analysis Core</p>
+                                    <div className="text-lg font-medium text-foreground leading-relaxed italic">
+                                        {job.reasoning ? (
+                                            `"${job.reasoning}"`
+                                        ) : (
+                                            <span className="opacity-50">Node active. Analysis protocol initiated... awaiting next scan cycle.</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>

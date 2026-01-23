@@ -141,6 +141,29 @@ export async function POST(request: Request) {
             userId = user.id;
         }
 
+        // Fetch user's min_score preference
+        const { data: prefs } = await supabase
+            .from('preferences')
+            .select('min_score')
+            .eq('user_id', userId)
+            .single();
+
+        const minScore = prefs?.min_score || 0;
+
+        if (jobData.score < minScore) {
+            return NextResponse.json({
+                success: false,
+                message: `Job score ${jobData.score} is below your minimum threshold of ${minScore}. Job not saved.`,
+                skipped: true
+            }, { status: 200 }); // Return 200 so n8n doesn't error out
+        }
+
+        // Clean reasoning if it contains markdown markers
+        let cleanReasoning = jobData.reasoning || '';
+        if (typeof cleanReasoning === 'string') {
+            cleanReasoning = cleanReasoning.replace(/```json\n?|```/g, '').trim();
+        }
+
         const { data, error } = await supabase
             .from('jobs')
             .insert({
@@ -148,8 +171,8 @@ export async function POST(request: Request) {
                 title: jobData.title,
                 company: jobData.company,
                 url: jobData.url,
-                score: jobData.score,
-                reasoning: jobData.reasoning,
+                score: Math.round(Number(jobData.score)),
+                reasoning: cleanReasoning,
                 status: jobData.status || 'Found',
                 tags: jobData.tags || [],
                 notes: jobData.notes,
@@ -161,7 +184,7 @@ export async function POST(request: Request) {
 
         if (error) {
             console.error('Error creating job:', error);
-            return NextResponse.json({ error: 'Failed to create job' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to create job', details: error }, { status: 500 });
         }
 
         return NextResponse.json(data);
@@ -213,6 +236,44 @@ export async function PATCH(request: Request) {
         return NextResponse.json(data);
     } catch (error) {
         console.error('Update job error:', error);
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+        return NextResponse.json({ error: 'Job ID required' }, { status: 400 });
+    }
+
+    if (isDemoMode) {
+        return NextResponse.json({ success: true, message: 'Demo mode - deletion simulated' });
+    }
+
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { error } = await supabase
+            .from('jobs')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('Error deleting job:', error);
+            return NextResponse.json({ error: 'Failed to delete job' }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Delete job error:', error);
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }

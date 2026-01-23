@@ -41,6 +41,7 @@ interface Preferences {
         targetRole: string;
         skills: string;
         yearsExperience: number | null;
+        workHistory: string;
     };
 }
 
@@ -249,6 +250,22 @@ export default function SettingsPage() {
                                             placeholder="AI Engineer, Data Scientist, etc."
                                             className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all font-medium"
                                         />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between items-center ml-1">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Base Experience / Work History</label>
+                                            <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">AI Source of Truth</span>
+                                        </div>
+                                        <textarea
+                                            value={prefs.profile.workHistory}
+                                            onChange={(e) => setPrefs({
+                                                ...prefs,
+                                                profile: { ...prefs.profile, workHistory: e.target.value }
+                                            })}
+                                            placeholder="Paste your existing resume points, projects, and career history here. The AI will use this as the ONLY source of truth for tailoring."
+                                            className="w-full bg-secondary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all font-medium min-h-[160px] resize-none"
+                                        />
+                                        <p className="text-[9px] text-muted-foreground ml-1">Provide your real experience to prevent the AI from "inventing" fake projects.</p>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Core Skills (One per line)</label>

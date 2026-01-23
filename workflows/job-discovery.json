@@ -1,5 +1,5 @@
 {
-    "name": "CareerPilot AI: The Ultimate Marathon",
+    "name": "CareerPilot AI: Final Pro Sync",
     "nodes": [
         {
             "parameters": {
@@ -16,52 +16,63 @@
             "type": "n8n-nodes-base.scheduleTrigger",
             "typeVersion": 1,
             "position": [
-                440,
+                100,
                 300
             ]
         },
         {
             "parameters": {
-                "url": "https://api.scrapingdog.com/linkedinjobs?api_key=69708c74371371de6b711c06&field=software+engineer",
+                "url": "http://localhost:3000/api/preferences",
+                "options": {}
+            },
+            "name": "Get Preference",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                300,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "=https://api.scrapingdog.com/linkedinjobs?api_key=69708c74371371de6b711c06&field={{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"targetRole\"].replace(/ /g, \"+\") }}",
                 "options": {}
             },
             "name": "LinkedIn Scraper",
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.1,
             "position": [
-                660,
+                500,
                 300
             ]
         },
         {
             "parameters": {
-                "model": "models/gemini-2.0-flash",
-                "prompt": "=Analyze the company logo and office vibe. \n\nJOB DATA: \n{{ $json[\"job_position\"] }} at {{ $json[\"company_name\"] }}\n\nINSTRUCTIONS: \n1. Identify 3 culture vibe tags (e.g. #ActionEra, #FastPaced, #Innovation).\n2. Is this a traditional or modern office environment?",
+                "model": "models/gemini-1.5-flash",
+                "resource": "image",
+                "imageUrls": "={{ $node[\"LinkedIn Scraper\"].json[\"company_logo_url\"] }}",
+                "prompt": "=Analyze the company logo and office vibe. Output 3 #culture tags.",
                 "options": {}
             },
             "name": "Analyze an image",
             "type": "n8n-nodes-base.googleGemini",
             "typeVersion": 1,
             "position": [
-                900,
+                700,
                 450
-            ],
-            "parameters": {
-                "resource": "image",
-                "imageUrls": "={{ $node[\"LinkedIn Scraper\"].json[\"company_logo_url\"] }}"
-            }
+            ]
         },
         {
             "parameters": {
-                "model": "models/gemini-2.0-flash",
-                "prompt": "=Analyze this job against my profile and provide a detailed fit score (1-10).\n\nMY BACKGROUND:\nExpert AI Automation Engineer. Skills: n8n, Gemini 2.0 API, Next.js, TypeScript, Solidity. Projects: Vibe Code Verifier, CareerPilot AI.\n\nJOB DESCRIPTION:\n{{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\n\nCULTURE VIBES:\n{{ $node[\"Analyze an image\"].json[\"text\"] }}\n\nINSTRUCTIONS:\n1. Generate a reasoning chain in <thought_signature> tags.\n2. Provide a score (1-10).\n3. Output a JSON with fields: \"thought_signature\", \"score\", \"reasoning_summary\", \"decision\" (APPLY/SKIP).",
+                "model": "models/gemini-1.5-flash",
+                "prompt": "=Analyze this job against my profile as an Expert {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"targetRole\"] }}.\n\nMY PROFILE:\nTarget Role: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"targetRole\"] }}\nCore Skills: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"skills\"] }}\n\nJOB DESCRIPTION:\n{{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\n\nINSTRUCTIONS:\n1. Provide a score (1-10).\n2. Output ONLY a raw JSON: {\"score\": 8, \"reasoning_summary\": \"...\"}",
                 "options": {}
             },
             "name": "Message a model",
             "type": "n8n-nodes-base.googleGemini",
             "typeVersion": 1,
             "position": [
-                1120,
+                700,
                 300
             ]
         },
@@ -72,23 +83,51 @@
                         {
                             "value1": "={{ $node[\"Message a model\"].json[\"score\"] }}",
                             "operation": "largerEqual",
-                            "value2": 8
+                            "value2": "={{ $item(0).$node[\"Get Preference\"].json[\"filters\"][\"minScore\"] || 7 }}"
                         }
                     ]
                 }
             },
-            "name": "Score >= 8?",
+            "name": "Score >= Threshold?",
             "type": "n8n-nodes-base.if",
             "typeVersion": 1,
             "position": [
-                1340,
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "models/gemini-1.5-flash",
+                "prompt": "=Job: {{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\nMy Real Work History: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"workHistory\"] }}\n\nTASK: Tailor my resume based ONLY on my real history. No hallucination. Output raw text.",
+                "options": {}
+            },
+            "name": "Tailor Resume",
+            "type": "n8n-nodes-base.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                1100,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "models/gemini-1.5-flash",
+                "prompt": "=Job: {{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\nMy Name: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"name\"] }}\nMy Real Experience: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"workHistory\"] }}\n\nTASK: Write a short 3-paragraph cover letter based ONLY on my real history. Output raw text.",
+                "options": {}
+            },
+            "name": "Generate Cover Letter",
+            "type": "n8n-nodes-base.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                1300,
                 300
             ]
         },
         {
             "parameters": {
                 "method": "POST",
-                "url": "http://localhost:3001/api/jobs",
+                "url": "http://localhost:3000/api/jobs",
                 "sendBody": true,
                 "bodyParameters": {
                     "parameters": [
@@ -102,11 +141,11 @@
                         },
                         {
                             "name": "score",
-                            "value": "={{ $node[\"Message a model\"].json[\"score\"] || 8 }}"
+                            "value": "={{ $node[\"Message a model\"].json[\"score\"] }}"
                         },
                         {
                             "name": "reasoning",
-                            "value": "={{ $node[\"Message a model\"].json[\"reasoning_summary\"] || \"Analyzing fit...\" }}"
+                            "value": "={{ $node[\"Message a model\"].json[\"reasoning_summary\"] }}"
                         },
                         {
                             "name": "url",
@@ -114,7 +153,15 @@
                         },
                         {
                             "name": "tags",
-                            "value": "[ \"#ActionEra\", \"#Gemini2\" ]"
+                            "value": "={{ $node[\"Analyze an image\"].json[\"text\"].includes(\"#\") ? $node[\"Analyze an image\"].json[\"text\"].match(/#[\\w]+/g) : [\"#Innovation\"] }}"
+                        },
+                        {
+                            "name": "tailoredResume",
+                            "value": "={{ $node[\"Tailor Resume\"].json[\"text\"] }}"
+                        },
+                        {
+                            "name": "coverLetter",
+                            "value": "={{ $node[\"Generate Cover Letter\"].json[\"text\"] }}"
                         }
                     ]
                 },
@@ -124,13 +171,24 @@
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.1,
             "position": [
-                1560,
+                1500,
                 300
             ]
         }
     ],
     "connections": {
         "Cron Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Get Preference",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Preference": {
             "main": [
                 [
                     {
@@ -174,14 +232,36 @@
             "main": [
                 [
                     {
-                        "node": "Score >= 8?",
+                        "node": "Score >= Threshold?",
                         "type": "main",
                         "index": 0
                     }
                 ]
             ]
         },
-        "Score >= 8?": {
+        "Score >= Threshold?": {
+            "main": [
+                [
+                    {
+                        "node": "Tailor Resume",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Tailor Resume": {
+            "main": [
+                [
+                    {
+                        "node": "Generate Cover Letter",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Generate Cover Letter": {
             "main": [
                 [
                     {
