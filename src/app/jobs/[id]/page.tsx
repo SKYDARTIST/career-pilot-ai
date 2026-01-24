@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useParams, useRouter } from 'next/navigation';
 import {
     ArrowLeft,
@@ -309,8 +310,10 @@ export default function JobDetailsPage() {
                                             )}
                                         </div>
                                         {job.tailoredResume ? (
-                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 whitespace-pre-wrap text-sm leading-relaxed text-foreground font-mono">
-                                                {job.tailoredResume}
+                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 text-sm leading-relaxed text-foreground min-h-[500px]">
+                                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                    <ReactMarkdown>{job.tailoredResume}</ReactMarkdown>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
@@ -340,8 +343,10 @@ export default function JobDetailsPage() {
                                             )}
                                         </div>
                                         {job.coverLetter ? (
-                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                                                {job.coverLetter}
+                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 text-sm leading-relaxed text-foreground min-h-[500px]">
+                                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                    <ReactMarkdown>{job.coverLetter}</ReactMarkdown>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">

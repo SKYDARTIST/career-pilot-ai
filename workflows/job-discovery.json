@@ -1,5 +1,5 @@
 {
-    "name": "CareerPilot AI: Final Pro Sync",
+    "name": "CareerPilot AI: Advanced Job Discovery (Multi-Strategy)",
     "nodes": [
         {
             "parameters": {
@@ -16,8 +16,8 @@
             "type": "n8n-nodes-base.scheduleTrigger",
             "typeVersion": 1,
             "position": [
-                100,
-                300
+                0,
+                0
             ]
         },
         {
@@ -29,51 +29,77 @@
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.1,
             "position": [
-                300,
-                300
+                220,
+                0
             ]
         },
         {
             "parameters": {
-                "url": "=https://api.scrapingdog.com/linkedinjobs?api_key=69708c74371371de6b711c06&field={{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"targetRole\"].replace(/ /g, \"+\") }}",
+                "url": "=https://api.scrapingdog.com/linkedinjobs?api_key=6973d7f40ee4debf6bf37950&type=search&job_title=(AI+Engineer)+OR+(Automation+Engineer)+OR+(MLOps+Engineer)+OR+(Machine+Learning+Engineer)+OR+(Full+Stack+Engineer+AI)+OR+(Backend+Engineer+AI)+OR+(Solutions+Engineer+AI)&location={{ ($item(0).$node[\"Get Preference\"].json[\"locations\"]?.[0] || \"United States\").replace(/ /g, \"+\") }}",
                 "options": {}
             },
             "name": "LinkedIn Scraper",
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.1,
             "position": [
-                500,
-                300
+                440,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "maxItems": 5,
+                "keep": "firstItems"
+            },
+            "name": "Limit",
+            "type": "n8n-nodes-base.limit",
+            "typeVersion": 1,
+            "position": [
+                660,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "url": "=https://api.scrapingdog.com/linkedinjobs?api_key=6973d7f40ee4debf6bf37950&type=details&job_id={{ $json[\"job_id\"] }}",
+                "options": {}
+            },
+            "name": "Fetch Full Job Description",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                880,
+                0
             ]
         },
         {
             "parameters": {
                 "model": "models/gemini-1.5-flash",
                 "resource": "image",
-                "imageUrls": "={{ $node[\"LinkedIn Scraper\"].json[\"company_logo_url\"] }}",
-                "prompt": "=Analyze the company logo and office vibe. Output 3 #culture tags.",
+                "urls": "={{ $node[\"LinkedIn Scraper\"].json[\"company_logo_url\"] }}",
+                "text": "=Analyze the company logo and office vibe. Output 3 #culture tags.",
                 "options": {}
             },
             "name": "Analyze an image",
             "type": "n8n-nodes-base.googleGemini",
             "typeVersion": 1,
             "position": [
-                700,
-                450
+                1100,
+                100
             ]
         },
         {
             "parameters": {
                 "model": "models/gemini-1.5-flash",
-                "prompt": "=Analyze this job against my profile as an Expert {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"targetRole\"] }}.\n\nMY PROFILE:\nTarget Role: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"targetRole\"] }}\nCore Skills: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"skills\"] }}\n\nJOB DESCRIPTION:\n{{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\n\nINSTRUCTIONS:\n1. Provide a score (1-10).\n2. Output ONLY a raw JSON: {\"score\": 8, \"reasoning_summary\": \"...\"}",
+                "text": "=Analyze this job against my profile using a Multi-Strategy Weighted Scoring approach.\n\nMY PROFILE:\nTarget Role: {{ $item(0).$node[\"Get Preference\"].json[\"targetRole\"] }}\nCore Skills: {{ $item(0).$node[\"Get Preference\"].json[\"skills\"].join(', ') }}\nWork History: {{ $item(0).$node[\"Get Preference\"].json[\"workHistory\"] }}\n\nJOB POSTING:\nTitle: {{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }}\nCompany: {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\nLocation: {{ $node[\"LinkedIn Scraper\"].json[\"job_location\"] }}\n\nFULL JOB DESCRIPTION:\n{{ $json[\"job_description\"] || $json[\"description\"] || \"Description not available.\" }}\n\nCOMPANY CULTURE ANALYSIS:\n{{ $node[\"Analyze an image\"].json.content.parts[0].text }}\n\nSCORING STRATEGY:\n1. **Semantic Title Check** (Immediate Rejection Filter):\n   - If title contains: \"Event\", \"Sales Rep\", \"Creative Assistant\", \"Retail\", \"Customer Service\"\n   - AND no technical keywords in JD → Score = 1, STOP analysis\n\n2. **Skills Overlap Analysis** (Primary Score):\n   - Exact match: \"Python\" in JD\n   - Related match: \"FastAPI\" -> Python, \"JS\" -> TS, \"Zapier\" -> n8n\n   - 0-20%: score 2-3 | 20-40%: score 4-5 | 40-60%: score 6-7 | 60%+: score 8-10\n\n3. **AI/Automation Bonus** (+1 to +2 points):\n   - JD mentions: LLMs, agents, RAG, embeddings, vector databases → +2\n   - JD mentions: automation, workflows, integrations, APIs → +1\n   - Company is: OpenAI, Anthropic, Google AI, n8n, Zapier → +2\n\n4. **Role Type Penalty** (-2 points):\n   - Sales Engineering, Marketing/Content, Manual QA.\n\n5. **Title-Description Mismatch Bonus** (+1 point):\n   - Irrelevant title BUT JD clearly requires \"Python, APIs, automation\".\n\nINSTRUCTIONS:\n1. Extract ALL technical skills from JD.\n2. Map to my skills.\n3. Calculate overlap.\n4. Apply bonuses/penalties.\n5. Output ONLY this JSON:\n{\n  \"thought_signature\": \"Step-by-step reasoning chain here...\",\n  \"score\": 7,\n  \"reasoning_summary\": \"Brief explanation for user\",\n  \"decision\": \"APPLY\",\n  \"skills_overlap_percentage\": 65,\n  \"matching_skills\": [\"Python\", \"Node.js\"],\n  \"missing_skills\": [\"AWS\"],\n  \"jd_extracted_skills\": [\"Python\", \"FastAPI\"],\n  \"red_flags\": []\n}",
                 "options": {}
             },
             "name": "Message a model",
             "type": "n8n-nodes-base.googleGemini",
             "typeVersion": 1,
             "position": [
-                700,
-                300
+                1320,
+                0
             ]
         },
         {
@@ -81,9 +107,9 @@
                 "conditions": {
                     "number": [
                         {
-                            "value1": "={{ $node[\"Message a model\"].json[\"score\"] }}",
+                            "value1": "={{ $json[\"score\"] }}",
                             "operation": "largerEqual",
-                            "value2": "={{ $item(0).$node[\"Get Preference\"].json[\"filters\"][\"minScore\"] || 7 }}"
+                            "value2": "={{ $item(0).$node[\"Get Preference\"].json[\"minScore\"] || 7 }}"
                         }
                     ]
                 }
@@ -92,36 +118,36 @@
             "type": "n8n-nodes-base.if",
             "typeVersion": 1,
             "position": [
-                900,
-                300
+                1540,
+                0
             ]
         },
         {
             "parameters": {
                 "model": "models/gemini-1.5-flash",
-                "prompt": "=Job: {{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\nMy Real Work History: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"workHistory\"] }}\n\nTASK: Tailor my resume based ONLY on my real history. No hallucination. Output raw text.",
+                "text": "=Job: {{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\nMy Real Work History: {{ $item(0).$node[\"Get Preference\"].json[\"workHistory\"] }}\n\nTASK: Tailor my resume based ONLY on my real history. No hallucination. Output raw text.",
                 "options": {}
             },
             "name": "Tailor Resume",
             "type": "n8n-nodes-base.googleGemini",
             "typeVersion": 1,
             "position": [
-                1100,
-                300
+                1760,
+                0
             ]
         },
         {
             "parameters": {
                 "model": "models/gemini-1.5-flash",
-                "prompt": "=Job: {{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\nMy Name: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"name\"] }}\nMy Real Experience: {{ $item(0).$node[\"Get Preference\"].json[\"profile\"][\"workHistory\"] }}\n\nTASK: Write a short 3-paragraph cover letter based ONLY on my real history. Output raw text.",
+                "text": "=Job: {{ $node[\"LinkedIn Scraper\"].json[\"job_position\"] }} at {{ $node[\"LinkedIn Scraper\"].json[\"company_name\"] }}\nMy Name: {{ $item(0).$node[\"Get Preference\"].json[\"userName\"] }}\nMy Real Experience: {{ $item(0).$node[\"Get Preference\"].json[\"workHistory\"] }}\n\nTASK: Write a short 3-paragraph cover letter based ONLY on my real history. Output raw text.",
                 "options": {}
             },
             "name": "Generate Cover Letter",
             "type": "n8n-nodes-base.googleGemini",
             "typeVersion": 1,
             "position": [
-                1300,
-                300
+                1980,
+                0
             ]
         },
         {
@@ -171,8 +197,8 @@
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.1,
             "position": [
-                1500,
-                300
+                2200,
+                0
             ]
         }
     ],
@@ -203,12 +229,32 @@
             "main": [
                 [
                     {
-                        "node": "Analyze an image",
+                        "node": "Limit",
                         "type": "main",
                         "index": 0
                     }
-                ],
+                ]
+            ]
+        },
+        "Limit": {
+            "main": [
                 [
+                    {
+                        "node": "Fetch Full Job Description",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Full Job Description": {
+            "main": [
+                [
+                    {
+                        "node": "Analyze an image",
+                        "type": "main",
+                        "index": 0
+                    },
                     {
                         "node": "Message a model",
                         "type": "main",

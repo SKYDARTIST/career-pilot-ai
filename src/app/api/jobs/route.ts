@@ -148,7 +148,8 @@ export async function POST(request: Request) {
             .eq('user_id', userId)
             .single();
 
-        const minScore = prefs?.min_score || 0;
+        // Force min score to 0 for hackathon to ensure all jobs are saved
+        const minScore = 0;
 
         if (jobData.score < minScore) {
             return NextResponse.json({

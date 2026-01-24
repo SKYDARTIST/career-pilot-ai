@@ -23,7 +23,10 @@ export async function POST(request: Request) {
         }
 
         // Filter out demo IDs which are not in the database and would cause UUID format errors
-        const realIds = ids.filter(id => typeof id === 'string' && !id.startsWith('demo-'));
+        const realIds = ids.filter((id: string | number) => {
+            const idStr = String(id);
+            return !idStr.startsWith('demo-');
+        });
 
         if (realIds.length === 0) {
             return NextResponse.json({ success: true, count: 0, message: 'Only demo items detected' });

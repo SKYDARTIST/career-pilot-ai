@@ -60,7 +60,8 @@ export default function Dashboard() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [notes, setNotes] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [minScore, setMinScore] = useState(0);
+  const [showConfirmTypes, setShowConfirmTypes] = useState<{ type: 'reset' | 'clear', count: number } | null>(null);
+  const [minScore, setMinScore] = useState(7);
 
   useEffect(() => {
     fetchJobs();
@@ -80,7 +81,10 @@ export default function Dashboard() {
       const prefsData = await prefsRes.json();
 
       setJobs(Array.isArray(jobsData) ? jobsData : []);
-      setMinScore(prefsData.filters?.minScore || 0);
+      setJobs(Array.isArray(jobsData) ? jobsData : []);
+      if (prefsData && prefsData.filters && typeof prefsData.filters.minScore === 'number') {
+        setMinScore(prefsData.filters.minScore);
+      }
     } catch (error) {
       console.error("Failed to fetch jobs or preferences:", error);
     } finally {
@@ -160,8 +164,6 @@ export default function Dashboard() {
     const jobsToRemove = jobs.filter(j => j.score < minScore || j.status === 'Rejected');
     if (jobsToRemove.length === 0) return;
 
-    if (!confirm(`This will permanently remove ${jobsToRemove.length} jobs (those below ${minScore}/10 or marked as Rejected). Continue?`)) return;
-
     setLoading(true);
     try {
       const res = await fetch('/api/jobs/bulk-delete', {
@@ -187,8 +189,6 @@ export default function Dashboard() {
   const handleResetFeed = async () => {
     if (jobs.length === 0) return;
 
-    if (!confirm(`WARING: This will PERMANENTLY delete ALL ${jobs.length} jobs in your feed. This cannot be undone. Are you sure you want to start fresh?`)) return;
-
     setLoading(true);
     try {
       const res = await fetch('/api/jobs/bulk-delete', {
@@ -212,6 +212,7 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -387,7 +388,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               {jobs.length > 0 && (
                 <button
-                  onClick={handleResetFeed}
+                  onClick={() => setShowConfirmTypes({ type: 'reset', count: jobs.length })}
                   className="px-4 py-2 bg-zinc-500/10 hover:bg-zinc-500/20 text-muted-foreground hover:text-foreground border border-border rounded-xl text-xs font-bold transition-all flex items-center gap-2"
                   title="Wipe all historical data"
                 >
@@ -397,7 +398,7 @@ export default function Dashboard() {
               )}
               {jobs.some(j => j.score < minScore || j.status === 'Rejected') && (
                 <button
-                  onClick={handleClearLowScores}
+                  onClick={() => setShowConfirmTypes({ type: 'clear', count: jobs.filter(j => j.score < minScore || j.status === 'Rejected').length })}
                   className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />
@@ -421,6 +422,11 @@ export default function Dashboard() {
                 <Briefcase className="w-10 h-10 text-muted-foreground/30 mb-4" />
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">No active nodes in this sector</p>
                 <p className="text-xs text-muted-foreground/60 mt-1">Adjust your filters or wait for the next robot scan.</p>
+                {jobs.length > 0 && (
+                  <p className="text-xs text-amber-500 font-bold mt-4 animate-pulse">
+                    {jobs.length} jobs detected below current threshold ({minScore})
+                  </p>
+                )}
               </div>
             ) : (
               <div className="grid gap-5">
@@ -593,6 +599,60 @@ export default function Dashboard() {
           )
         }
       </AnimatePresence >
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmTypes && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md"
+              onClick={() => setShowConfirmTypes(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-8 text-center"
+            >
+              <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                <ShieldCheck className="w-6 h-6 text-red-500" />
+              </div>
+
+              <h3 className="text-xl font-bold tracking-tight mb-2">
+                {showConfirmTypes.type === 'reset' ? 'System Reset Initiated' : 'Purge Low-Scoring Nodes'}
+              </h3>
+
+              <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+                {showConfirmTypes.type === 'reset'
+                  ? `WARNING: This will permanently delete ALL ${showConfirmTypes.count} jobs from your feed. This action cannot be undone.`
+                  : `This will remove ${showConfirmTypes.count} jobs falling below your quality threshold (${minScore}/10).`}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirmTypes(null)}
+                  className="flex-1 py-3 bg-secondary hover:bg-border rounded-xl text-sm font-bold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (showConfirmTypes.type === 'reset') handleResetFeed();
+                    else handleClearLowScores();
+                    setShowConfirmTypes(null);
+                  }}
+                  className="flex-1 py-3 bg-red-500 text-white hover:bg-red-600 rounded-xl text-sm font-bold shadow-lg shadow-red-500/20 transition-all"
+                >
+                  Confirm Deletion
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <footer className="border-t border-border py-8 bg-card/50">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
