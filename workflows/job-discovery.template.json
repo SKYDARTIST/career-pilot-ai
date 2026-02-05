@@ -1,5 +1,5 @@
 {
-    "name": "CareerPilot AI: Robust Job Discovery",
+    "name": "CareerPilot AI: Job Discovery Workflow",
     "nodes": [
         {
             "parameters": {
@@ -22,14 +22,14 @@
         },
         {
             "parameters": {
-                "url": "http://127.0.0.1:3000/api/preferences?userId=5629ed4f-3347-44c4-8efe-baca5578ae9f",
+                "url": "={{$env.CAREER_PILOT_API_URL}}/api/preferences?userId={{$env.CAREER_PILOT_USER_ID}}",
                 "authentication": "none",
                 "sendHeaders": true,
                 "headerParameters": {
                     "parameters": [
                         {
                             "name": "X-API-Key",
-                            "value": "career-pilot-secret-key"
+                            "value": "={{$env.CAREER_PILOT_API_KEY}}"
                         }
                     ]
                 },
@@ -65,7 +65,7 @@
                         },
                         {
                             "name": "api_key",
-                            "value": "615132a06529fdd4541224aa25d76aa6cc649789672c37aa8598504a775ae7cd"
+                            "value": "={{$env.SERPAPI_KEY}}"
                         },
                         {
                             "name": "num",
@@ -111,7 +111,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
@@ -129,7 +129,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
@@ -179,7 +179,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
@@ -197,7 +197,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
@@ -215,20 +215,20 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "http://127.0.0.1:3000/api/jobs",
+                "url": "={{$env.CAREER_PILOT_API_URL}}/api/jobs",
                 "authentication": "none",
                 "sendHeaders": true,
                 "headerParameters": {
                     "parameters": [
                         {
                             "name": "X-API-Key",
-                            "value": "career-pilot-secret-key"
+                            "value": "={{$env.CAREER_PILOT_API_KEY}}"
                         }
                     ]
                 },
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ { \"user_id\": \"5629ed4f-3347-44c4-8efe-baca5578ae9f\", \"title\": $node[\"Parse Google Jobs\"].json[\"job_position\"], \"company\": $node[\"Parse Google Jobs\"].json[\"company_name\"], \"score\": $node[\"Parse Result\"].json[\"score\"], \"reasoning\": $node[\"Parse Result\"].json[\"reasoning_summary\"], \"url\": $node[\"Parse Google Jobs\"].json[\"job_link\"], \"status\": \"Found\", \"tags\": [\"#General\"], \"tailoredResume\": \"N/A\", \"coverLetter\": \"N/A\" } }}",
+                "jsonBody": "={{ { \"user_id\": $env.CAREER_PILOT_USER_ID, \"title\": $node[\"Parse Google Jobs\"].json[\"job_position\"], \"company\": $node[\"Parse Google Jobs\"].json[\"company_name\"], \"score\": $node[\"Parse Result\"].json[\"score\"], \"reasoning\": $node[\"Parse Result\"].json[\"reasoning_summary\"], \"url\": $node[\"Parse Google Jobs\"].json[\"job_link\"], \"status\": \"Found\", \"tags\": [\"#General\"], \"tailoredResume\": \"N/A\", \"coverLetter\": \"N/A\" } }}",
                 "options": {}
             },
             "name": "Push to Dashboard (Low Score)",
@@ -242,20 +242,20 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "http://127.0.0.1:3000/api/jobs",
+                "url": "={{$env.CAREER_PILOT_API_URL}}/api/jobs",
                 "authentication": "none",
                 "sendHeaders": true,
                 "headerParameters": {
                     "parameters": [
                         {
                             "name": "X-API-Key",
-                            "value": "career-pilot-secret-key"
+                            "value": "={{$env.CAREER_PILOT_API_KEY}}"
                         }
                     ]
                 },
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ { \"user_id\": \"5629ed4f-3347-44c4-8efe-baca5578ae9f\", \"title\": $node[\"Parse Google Jobs\"].json[\"job_position\"], \"company\": $node[\"Parse Google Jobs\"].json[\"company_name\"], \"score\": $node[\"Parse Result\"].json[\"score\"], \"reasoning\": $node[\"Parse Result\"].json[\"reasoning_summary\"], \"url\": $node[\"Parse Google Jobs\"].json[\"job_link\"], \"status\": \"Found\", \"tags\": [\"#General\"], \"tailoredResume\": $node[\"Tailor Resume\"].json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"], \"coverLetter\": $node[\"Generate Cover Letter\"].json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"] } }}",
+                "jsonBody": "={{ { \"user_id\": $env.CAREER_PILOT_USER_ID, \"title\": $node[\"Parse Google Jobs\"].json[\"job_position\"], \"company\": $node[\"Parse Google Jobs\"].json[\"company_name\"], \"score\": $node[\"Parse Result\"].json[\"score\"], \"reasoning\": $node[\"Parse Result\"].json[\"reasoning_summary\"], \"url\": $node[\"Parse Google Jobs\"].json[\"job_link\"], \"status\": \"Found\", \"tags\": [\"#General\"], \"tailoredResume\": $node[\"Tailor Resume\"].json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"], \"coverLetter\": $node[\"Generate Cover Letter\"].json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"] } }}",
                 "options": {}
             },
             "name": "Push to Dashboard (High Score)",

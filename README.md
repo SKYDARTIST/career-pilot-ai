@@ -1,32 +1,180 @@
-# CareerPilot AI - The Job Application Robot
+# CareerPilot AI - The Autonomous Job Application Agent
 
-An autonomous agent that manages the end-to-end job application process using Gemini 3 and n8n.
+> 🏆 **Built for the Gemini 3 Global Hackathon**
 
-## How it Works
-1. **Discovery**: A recurring n8n workflow scrapes job boards (or uses APIs) to find new listings.
-2. **Analysis**: Gemini 3 reads each job description and cross-references it with your `master-resume.md`.
-3. **Scoring**: A "Fit Score" (1-10) is assigned based on skills, culture, and preferences.
-4. **Tailoring**: For jobs with a score > 8, Gemini 3 creates a bespoke resume and cover letter.
-5. **Action**: The agent prepares the application and notifies you via a Daily Digest.
+An AI-powered autonomous agent that automates the end-to-end job application process using **Gemini** and **n8n**.
 
-## Project Structure
-- `workflows/`: Exported n8n `.json` files.
-- `prompts/`: System prompts for Gemini 3.
-- `data/`: Your master resume and tracked applications.
+![CareerPilot AI Banner](./public/banner.png)
 
-## How to Use This Project
+## ✨ Features
 
-### Step 1: Initialize Your Data
-Open [master-resume.md](file:///Users/cryptobulla/.gemini/antigravity/scratch/career-pilot-ai/data/master-resume.md) and fill in your actual professional details. This is what the AI uses to customize your applications.
+- **🔍 Intelligent Discovery**: Autonomous job scraping based on your career preferences
+- **🧠 Multi-Strategy Analysis**: Gemini evaluates each job using advanced reasoning chains
+- **📊 Smart Scoring**: AI-powered fit scoring (1-10) based on skills, experience, and culture
+- **📄 Personalized Tailoring**: Auto-generates customized resumes and cover letters
+- **📱 Beautiful Dashboard**: Track and manage all your job opportunities in one place
 
-### Step 2: Import Workflow to n8n
-1. Open your n8n instance.
-2. Go to **Workflows** > **Import from File**.
-3. Select [job-discovery.json](file:///Users/cryptobulla/.gemini/antigravity/scratch/career-pilot-ai/workflows/job-discovery.json).
-4. **Important**: Replace the `PLACEHOLDER` in the LinkedIn Scraper node with your own API key (e.g., from Scrapingdog or similar).
+## 🚀 Quick Start
 
-### Step 3: Set Up Gemini 3
-Ensure you have your **Gemini API Key** connected in n8n. The workflow is configured to use the Pro model to analyze and score jobs.
+### Prerequisites
 
-### Step 4: Run the Marathon Agent
-Activate the workflow. It will now run autonomously, searching for jobs and notifying you only of the ones that are a "High Fidelity" match!
+- Node.js 18+
+- n8n (for workflow automation)
+- Supabase account
+- Gemini API key
+- SerpAPI key (or Serper.dev)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/career-pilot-ai
+   cd career-pilot-ai
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.local.example .env.local
+   # Edit .env.local with your API keys
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Import the n8n workflow**
+   - Open n8n at http://localhost:5678
+   - Import `workflows/job-discovery.template.json`
+   - Configure n8n environment variables (see below)
+
+### n8n Environment Variables
+
+Set these in n8n Settings > Variables:
+
+| Variable | Description |
+|----------|-------------|
+| `GEMINI_API_KEY` | Your Gemini API key from [AI Studio](https://aistudio.google.com/apikey) |
+| `SERPAPI_KEY` | Your SerpAPI key from [serpapi.com](https://serpapi.com/) |
+| `CAREER_PILOT_API_KEY` | Same as in your `.env.local` |
+| `CAREER_PILOT_API_URL` | `http://localhost:3000` (or your deployed URL) |
+| `CAREER_PILOT_USER_ID` | Your Supabase user ID |
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐
+│  User Profile   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐     ┌─────────────────┐
+│  n8n Workflow   │────▶│ Job Search API  │
+│  (Cron: 6hrs)   │     │  (SerpAPI)      │
+└────────┬────────┘     └─────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│           Gemini 2.0 Flash              │
+│  ┌───────────┐ ┌───────────────────┐   │
+│  │  Scorer   │ │ Culture Analyzer  │   │
+│  └───────────┘ └───────────────────┘   │
+│  ┌───────────┐ ┌───────────────────┐   │
+│  │  Resume   │ │  Cover Letter     │   │
+│  │  Tailor   │ │  Generator        │   │
+│  └───────────┘ └───────────────────┘   │
+└────────┬────────────────────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Supabase DB   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Next.js Dashboard│
+└─────────────────┘
+```
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL), Next.js API Routes
+- **Automation**: n8n (workflow engine)
+- **AI**: Gemini 2.0 Flash (4 specialized nodes)
+- **APIs**: SerpAPI (job data), Google AI Studio
+
+## 📁 Project Structure
+
+```
+career-pilot-ai/
+├── src/
+│   ├── app/
+│   │   ├── api/           # API routes
+│   │   ├── dashboard/     # Job dashboard
+│   │   ├── settings/      # User preferences
+│   │   ├── login/         # Authentication
+│   │   └── components/    # UI components
+│   ├── hooks/             # React hooks
+│   └── lib/               # Supabase clients
+├── workflows/
+│   ├── job-discovery.template.json  # n8n workflow (use this!)
+│   └── job-discovery.json           # Local development
+├── prompts/               # AI system prompts
+├── data/                  # Example data files
+└── docs/                  # Documentation
+```
+
+## 🔐 Security
+
+- Row Level Security (RLS) enabled on all tables
+- API key authentication for n8n integration
+- User isolation - each user only sees their own data
+- No hardcoded credentials in distribution files
+
+## 📖 Documentation
+
+- [Production Setup Guide](./PRODUCTION_SETUP_GUIDE.md)
+- [Hackathon Submission](./HACKATHON_SUBMISSION.md)
+- [Enhancements Guide](./ENHANCEMENTS.md)
+- [Terms of Service](./TERMS_OF_SERVICE.md)
+- [Privacy Policy](./PRIVACY_POLICY.md)
+
+## 🎯 Gemini Integration
+
+This project showcases Gemini's capabilities across 4 critical nodes:
+
+1. **Job Scorer**: Advanced reasoning for job-fit analysis
+2. **Culture Analyzer**: Multimodal vision + text for company culture
+3. **Resume Tailor**: Personalized resume generation
+4. **Cover Letter Generator**: Custom cover letter writing
+
+## 🚧 Roadmap
+
+- [ ] Auto-Apply: One-click application submission
+- [ ] Interview Prep: AI-powered mock interviews
+- [ ] Salary Negotiation: AI coach for offers
+- [ ] Network Analysis: LinkedIn graph for warm intros
+- [ ] Mobile App: iOS/Android companion
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines before submitting PRs.
+
+## 📞 Contact
+
+- GitHub: [@yourusername](https://github.com/yourusername)
+- Email: your-email@example.com
+
+---
+
+**Built with ❤️ and Gemini for the Gemini 3 Global Hackathon**

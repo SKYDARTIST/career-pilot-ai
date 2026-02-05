@@ -146,7 +146,7 @@
         },
         {
             "parameters": {
-                "jsCode": "const text = $node[\"Gemini Scorer\"].json[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"];\n// Extract JSON from potential markdown code blocks\nconst jsonMatch = text.match(/\\{.*\\}/s);\nconst jsonStr = jsonMatch ? jsonMatch[0] : text;\nreturn JSON.parse(jsonStr);"
+                "jsCode": "// Process all items\nconst results = [];\nfor (const item of $input.all()) {\n  const text = item.json.candidates[0].content.parts[0].text;\n  const jsonMatch = text.match(/\\{.*\\}/s);\n  const jsonStr = jsonMatch ? jsonMatch[0] : text;\n  const parsed = JSON.parse(jsonStr);\n  results.push({ json: parsed });\n}\nreturn results;"
             },
             "name": "Parse Result",
             "type": "n8n-nodes-base.code",

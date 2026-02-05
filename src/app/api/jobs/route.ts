@@ -2,7 +2,12 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-const API_KEY = process.env.CAREER_PILOT_API_KEY || 'career-pilot-secret-key';
+const API_KEY = process.env.CAREER_PILOT_API_KEY;
+
+// Validate API key is configured (skip in demo mode)
+if (!isDemoMode && !API_KEY) {
+    console.warn('WARNING: CAREER_PILOT_API_KEY is not configured. API key authentication will fail.');
+}
 
 // Helper to check if request is from n8n with API key
 function isApiKeyValid(request: Request): boolean {
@@ -165,13 +170,74 @@ export async function POST(request: Request) {
             cleanReasoning = cleanReasoning.replace(/```json\n?|```/g, '').trim();
         }
 
+        // URL Normalization: Remove query parameters for cleaner comparison
+        let normalizedUrl = jobData.url || '';
+        if (typeof normalizedUrl === 'string' && normalizedUrl.includes('?')) {
+            normalizedUrl = normalizedUrl.split('?')[0];
+        }
+
+        // Check if job already exists (deduplication)
+        // Strategy: Check by normalized URL first, then fallback to Title + Company
+        let { data: existingJob } = await supabase
+            .from('jobs')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('url', normalizedUrl)
+            .limit(1)
+            .maybeSingle();
+
+        if (!existingJob) {
+            // Secondary check: Title + Company (highly likely the same job if both match for the same user)
+            const { data: duplicateByTitle } = await supabase
+                .from('jobs')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('title', jobData.title)
+                .eq('company', jobData.company)
+                .limit(1)
+                .maybeSingle();
+
+            if (duplicateByTitle) {
+                existingJob = duplicateByTitle;
+            }
+        }
+
+        if (existingJob) {
+            // Update existing job instead of creating a new one
+            const { data, error } = await supabase
+                .from('jobs')
+                .update({
+                    title: jobData.title,
+                    company: jobData.company,
+                    score: Math.round(Number(jobData.score)),
+                    reasoning: cleanReasoning,
+                    status: jobData.status || 'Found',
+                    tags: jobData.tags || [],
+                    notes: jobData.notes,
+                    url: normalizedUrl, // Save the normalized URL
+                    tailored_resume: jobData.tailoredResume,
+                    cover_letter: jobData.coverLetter,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('id', existingJob.id)
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error updating existing job:', error);
+                return NextResponse.json({ error: 'Failed to update existing job', details: error }, { status: 500 });
+            }
+
+            return NextResponse.json({ ...data, message: 'Existing job updated' });
+        }
+
         const { data, error } = await supabase
             .from('jobs')
             .insert({
                 user_id: userId,
                 title: jobData.title,
                 company: jobData.company,
-                url: jobData.url,
+                url: normalizedUrl, // Save the normalized URL
                 score: Math.round(Number(jobData.score)),
                 reasoning: cleanReasoning,
                 status: jobData.status || 'Found',

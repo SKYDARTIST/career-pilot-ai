@@ -40,6 +40,8 @@ interface Job {
   time: string;
   createdAt: string;
   url?: string;
+  tailoredResume?: string;
+  coverLetter?: string;
 }
 
 // Filter tabs
@@ -578,21 +580,85 @@ export default function Dashboard() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl p-8"
+                className="relative w-full max-w-4xl max-h-[90vh] bg-card border border-border rounded-2xl shadow-2xl p-8 overflow-y-auto"
               >
-                <h3 className="text-xl font-bold tracking-tight mb-1">{selectedJob.company}</h3>
-                <p className="text-sm text-muted-foreground mb-6">{selectedJob.title}</p>
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold tracking-tight mb-1">{selectedJob.company}</h3>
+                    <p className="text-sm text-muted-foreground">{selectedJob.title}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        selectedJob.score >= 8 ? 'bg-green-500/10 text-green-500' :
+                        selectedJob.score >= 6 ? 'bg-blue-500/10 text-blue-500' :
+                        'bg-gray-500/10 text-gray-500'
+                      }`}>
+                        Score: {selectedJob.score}/10
+                      </span>
+                      {selectedJob.url && (
+                        <a href={selectedJob.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                          View Posting <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedJob(null)} className="text-muted-foreground hover:text-foreground">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
 
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Log internal communication or agent instructions..."
-                  className="w-full h-40 bg-secondary border border-border rounded-xl p-4 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all"
-                />
+                {/* Reasoning */}
+                {selectedJob.reasoning && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-primary" />
+                      AI Analysis
+                    </h4>
+                    <div className="bg-secondary/50 border border-border rounded-xl p-4 text-sm text-muted-foreground italic">
+                      "{selectedJob.reasoning}"
+                    </div>
+                  </div>
+                )}
 
-                <div className="flex gap-3 mt-6">
-                  <button onClick={() => setSelectedJob(null)} className="flex-1 py-3 bg-secondary hover:bg-border rounded-xl text-sm font-bold transition-colors">Discard</button>
-                  <button onClick={handleSaveNotes} className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20">Commit Changes</button>
+                {/* Tailored Resume */}
+                {selectedJob.tailoredResume && selectedJob.tailoredResume !== 'N/A' && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      Tailored Resume
+                    </h4>
+                    <div className="bg-secondary/50 border border-border rounded-xl p-4 text-sm whitespace-pre-wrap">
+                      {selectedJob.tailoredResume}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cover Letter */}
+                {selectedJob.coverLetter && selectedJob.coverLetter !== 'N/A' && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-primary" />
+                      Cover Letter
+                    </h4>
+                    <div className="bg-secondary/50 border border-border rounded-xl p-4 text-sm whitespace-pre-wrap">
+                      {selectedJob.coverLetter}
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold mb-2">Notes</h4>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Log internal communication or agent instructions..."
+                    className="w-full h-32 bg-secondary border border-border rounded-xl p-4 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button onClick={() => setSelectedJob(null)} className="flex-1 py-3 bg-secondary hover:bg-border rounded-xl text-sm font-bold transition-colors">Close</button>
+                  <button onClick={handleSaveNotes} className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20">Save Notes</button>
                 </div>
               </motion.div>
             </div>

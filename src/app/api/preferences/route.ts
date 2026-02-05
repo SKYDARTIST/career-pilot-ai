@@ -2,11 +2,20 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-const API_KEY = process.env.CAREER_PILOT_API_KEY || 'career-pilot-secret-key';
+const API_KEY = process.env.CAREER_PILOT_API_KEY;
+
+// Validate API key is configured (skip in demo mode)
+if (!isDemoMode && !API_KEY) {
+    console.warn('WARNING: CAREER_PILOT_API_KEY is not configured. API key authentication will fail.');
+}
 
 // Helper to check if request is from n8n with API key
 function isApiKeyValid(request: Request): boolean {
     const apiKey = request.headers.get('X-API-Key');
+    console.log('--- Auth Debug ---');
+    console.log('Incoming X-API-Key:', apiKey);
+    console.log('Expected API_KEY:', API_KEY);
+    console.log('------------------');
     return apiKey === API_KEY;
 }
 

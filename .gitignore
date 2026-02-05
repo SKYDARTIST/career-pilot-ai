@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
 
 # vercel
 .vercel
@@ -39,3 +40,35 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ==============================================================================
+# Development & Test Files (DO NOT COMMIT)
+# ==============================================================================
+
+# Log files
+*.log
+dev_*.log
+n8n_*.log
+
+# Test scripts
+test_*.js
+test_*.ts
+check_*.js
+check_*.py
+inspect_*.js
+cleanup_*.js
+enhanced_*.js
+get_user.js
+clear-my-jobs.js
+
+# Temporary files
+SUPER_TEST.txt
+test_write.txt
+*.tmp
+*.temp
+
+# Data exports (may contain sensitive info)
+_FOR_IMPORT/
+
+# Workflow files with hardcoded keys (use template instead)
+# Note: Keep job-discovery.json for local dev, but use template for distribution
