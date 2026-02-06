@@ -110,7 +110,7 @@ export default function JobDetailsPage() {
         try {
             const res = await fetch(`/api/jobs/${job.id}`, { method: 'DELETE' });
             if (res.ok) {
-                router.push('/');
+                router.push('/dashboard');
             }
         } catch (error) {
             console.error('Failed to delete job:', error);
@@ -149,7 +149,7 @@ export default function JobDetailsPage() {
                 <XCircle className="w-12 h-12 text-destructive" />
                 <h1 className="text-xl font-bold">Node missing from grid</h1>
                 <button
-                    onClick={() => router.push('/')}
+                    onClick={() => router.push('/dashboard')}
                     className="text-primary hover:underline flex items-center gap-2 font-bold text-sm"
                 >
                     <ArrowLeft className="w-4 h-4" /> Return to Feed
@@ -166,7 +166,7 @@ export default function JobDetailsPage() {
                     <div className="flex items-center h-14 justify-between">
                         <div className="flex items-center gap-4">
                             <button
-                                onClick={() => router.push('/')}
+                                onClick={() => router.push('/dashboard')}
                                 className="p-2 hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-border"
                             >
                                 <ArrowLeft className="w-4 h-4 text-muted-foreground" />

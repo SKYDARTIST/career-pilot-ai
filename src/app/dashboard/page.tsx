@@ -23,6 +23,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import StatusDropdown from '../components/StatusDropdown';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
@@ -233,14 +234,14 @@ export default function Dashboard() {
       <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between h-14 items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+            <Link href="/dashboard" className="flex items-center gap-3 group">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                 <Bot className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-bold tracking-tight text-foreground">
+              <span className="text-lg font-bold tracking-tight">
                 CareerPilot<span className="text-primary">.ai</span>
               </span>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-2">
               <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-secondary rounded-full border border-border mr-2">
@@ -592,8 +593,8 @@ export default function Dashboard() {
                     <p className="text-sm text-muted-foreground">{selectedJob.title}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedJob.score >= 8 ? 'bg-green-500/10 text-green-500' :
-                          selectedJob.score >= 6 ? 'bg-blue-500/10 text-blue-500' :
-                            'bg-gray-500/10 text-gray-500'
+                        selectedJob.score >= 6 ? 'bg-blue-500/10 text-blue-500' :
+                          'bg-gray-500/10 text-gray-500'
                         }`}>
                         Score: {selectedJob.score}/10
                       </span>
