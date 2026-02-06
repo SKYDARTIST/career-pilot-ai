@@ -17,8 +17,10 @@ CareerPilot AI uses Gemini 3 to automate the entire job discovery and applicatio
 1. **Intelligent Discovery**: Autonomous job scraping based on your career preferences
 2. **Multi-Strategy Analysis**: Gemini 3 evaluates each job using advanced reasoning chains
 3. **Smart Scoring**: AI-powered fit scoring (1-10) based on skills, experience, and culture
-4. **Personalized Tailoring**: Auto-generates customized resumes and cover letters
-5. **Dashboard Insights**: Beautiful web interface to track and manage opportunities
+4. **Reasoning Explainer**: Transparent breakdown of Gemini's decision-making process
+5. **Personalized Tailoring**: Auto-generates customized resumes and cover letters
+6. **Market Intelligence**: Comprehensive stats dashboard showing search velocity and time saved
+7. **Dashboard Insights**: Beautiful web interface to track and manage opportunities
 
 ## Gemini 3 Integration
 
@@ -77,6 +79,8 @@ Push to Dashboard (Next.js + Supabase)
 3. **Long Context**: Processing full job descriptions (up to 128K tokens)
 4. **Structured Output**: JSON mode for reliable data extraction
 5. **Low Latency**: Fast response times for real-time job evaluation
+6. **Grounding**: Real-time research on companies for deeper analysis
+7. **Explainable AI**: Detailed reasoning breakdown for every score
 
 ## Innovation & Impact
 
@@ -100,7 +104,7 @@ Push to Dashboard (Next.js + Supabase)
 ## Demo & Presentation
 
 ### Project Links
-- **Live Demo**: [https://career-pilot-ai.vercel.app](https://career-pilot-ai.vercel.app) (Coming soon)
+- **Live Demo**: [https://career-pilot-ai-demo.vercel.app](https://career-pilot-ai-demo.vercel.app)
 - **Code Repository**: [https://github.com/cryptobulla/career-pilot-ai](https://github.com/cryptobulla/career-pilot-ai)
 - **Demo Video**: [3-minute walkthrough on YouTube](https://youtube.com/...)
 

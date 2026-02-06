@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ThemeToggle from '../../components/ThemeToggle';
+import ReasoningExplainer from '../../components/ReasoningExplainer';
 
 interface Job {
     id: number;
@@ -120,6 +121,10 @@ export default function JobDetailsPage() {
         navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handlePrint = () => {
+        window.print();
     };
 
     const formatDate = (dateStr: string) => {
@@ -225,23 +230,8 @@ export default function JobDetailsPage() {
                         </div>
 
                         {/* AI Rationale */}
-                        <div className="p-8 bg-primary/5 border border-primary/20 rounded-3xl relative overflow-hidden group">
-                            <Brain className="absolute -right-4 -bottom-4 w-32 h-32 text-primary/10 transition-transform group-hover:scale-110 duration-1000" />
-                            <div className="relative z-10 flex items-start gap-4">
-                                <div className="p-3 bg-primary rounded-2xl shadow-xl shadow-primary/30">
-                                    <Sparkles className="w-5 h-5 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[11px] font-black uppercase tracking-[.2em] text-primary mb-2">Gemini Analysis Core</p>
-                                    <div className="text-lg font-medium text-foreground leading-relaxed italic">
-                                        {job.reasoning ? (
-                                            `"${job.reasoning}"`
-                                        ) : (
-                                            <span className="opacity-50">Node active. Analysis protocol initiated... awaiting next scan cycle.</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                            <ReasoningExplainer reasoning={job.reasoning} />
                         </div>
 
                         {/* Document Tabs */}
@@ -300,13 +290,22 @@ export default function JobDetailsPage() {
                                                 <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-black">Optimized for Gemini Recruiter Flow</p>
                                             </div>
                                             {job.tailoredResume && (
-                                                <button
-                                                    onClick={() => copyToClipboard(job.tailoredResume || '')}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all"
-                                                >
-                                                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                                                    {copied ? 'Captured' : 'Copy Text'}
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={handlePrint}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-bold transition-all no-print"
+                                                    >
+                                                        <FileText className="w-4 h-4" />
+                                                        Export PDF
+                                                    </button>
+                                                    <button
+                                                        onClick={() => copyToClipboard(job.tailoredResume || '')}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all no-print"
+                                                    >
+                                                        {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                                                        {copied ? 'Captured' : 'Copy Text'}
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                         {job.tailoredResume ? (
@@ -333,13 +332,22 @@ export default function JobDetailsPage() {
                                                 <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-black">Generated Content for Application Body</p>
                                             </div>
                                             {job.coverLetter && (
-                                                <button
-                                                    onClick={() => copyToClipboard(job.coverLetter || '')}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all"
-                                                >
-                                                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                                                    {copied ? 'Captured' : 'Copy Text'}
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={handlePrint}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-bold transition-all no-print"
+                                                    >
+                                                        <MessageSquare className="w-4 h-4" />
+                                                        Export PDF
+                                                    </button>
+                                                    <button
+                                                        onClick={() => copyToClipboard(job.coverLetter || '')}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all no-print"
+                                                    >
+                                                        {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                                                        {copied ? 'Captured' : 'Copy Text'}
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                         {job.coverLetter ? (

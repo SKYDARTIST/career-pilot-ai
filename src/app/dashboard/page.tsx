@@ -289,6 +289,10 @@ export default function Dashboard() {
                           </span>
                         </div>
                       </div>
+                      <a href="/stats" className="w-full px-4 py-2.5 text-left text-sm hover:bg-secondary flex items-center gap-2 transition-colors">
+                        <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                        Market Insights
+                      </a>
                       <a href="/settings" className="w-full px-4 py-2.5 text-left text-sm hover:bg-secondary flex items-center gap-2 transition-colors">
                         <Settings className="w-4 h-4 text-muted-foreground" />
                         Account Settings
@@ -587,11 +591,10 @@ export default function Dashboard() {
                     <h3 className="text-xl font-bold tracking-tight mb-1">{selectedJob.company}</h3>
                     <p className="text-sm text-muted-foreground">{selectedJob.title}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        selectedJob.score >= 8 ? 'bg-green-500/10 text-green-500' :
-                        selectedJob.score >= 6 ? 'bg-blue-500/10 text-blue-500' :
-                        'bg-gray-500/10 text-gray-500'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedJob.score >= 8 ? 'bg-green-500/10 text-green-500' :
+                          selectedJob.score >= 6 ? 'bg-blue-500/10 text-blue-500' :
+                            'bg-gray-500/10 text-gray-500'
+                        }`}>
                         Score: {selectedJob.score}/10
                       </span>
                       {selectedJob.url && (
