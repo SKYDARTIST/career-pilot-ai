@@ -4,6 +4,8 @@
 
 An AI-powered autonomous agent that automates the end-to-end job application process using **Gemini** and **n8n**.
 
+**[Live Demo →](https://career-pilot-ai-psi.vercel.app)**
+
 ![CareerPilot AI Banner](./public/banner.png)
 
 ## ✨ Features
@@ -28,7 +30,7 @@ An AI-powered autonomous agent that automates the end-to-end job application pro
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/career-pilot-ai
+   git clone https://github.com/SKYDARTIST/career-pilot-ai
    cd career-pilot-ai
    ```
 
@@ -166,14 +168,10 @@ This project showcases Gemini's capabilities across 4 critical nodes:
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-## 🤝 Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
-
 ## 📞 Contact
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your-email@example.com
+- GitHub: [@SKYDARTIST](https://github.com/SKYDARTIST)
+- X: [@AakashBuild](https://x.com/AakashBuild)
 
 ---
 
