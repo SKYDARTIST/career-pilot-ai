@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Bot,
   Search,
   CheckCircle2,
   FileText,
@@ -12,7 +11,6 @@ import {
   TrendingUp,
   Clock,
   Briefcase,
-  ChevronRight,
   ShieldCheck,
   Brain,
   Settings,
@@ -23,8 +21,9 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
 import StatusDropdown from '../components/StatusDropdown';
+import BrandLink from '../components/BrandLink';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -56,15 +55,16 @@ const FILTER_TABS = [
 ];
 
 export default function Dashboard() {
-  const { user, profile, loading: authLoading, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [notes, setNotes] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showConfirmTypes, setShowConfirmTypes] = useState<{ type: 'reset' | 'clear', count: number } | null>(null);
   const [minScore, setMinScore] = useState(7);
+  const [discoveryRunning, setDiscoveryRunning] = useState(false);
+  const [discoveryMessage, setDiscoveryMessage] = useState('');
 
   useEffect(() => {
     fetchJobs();
@@ -83,7 +83,6 @@ export default function Dashboard() {
       const jobsData = await jobsRes.json();
       const prefsData = await prefsRes.json();
 
-      setJobs(Array.isArray(jobsData) ? jobsData : []);
       setJobs(Array.isArray(jobsData) ? jobsData : []);
       if (prefsData && prefsData.filters && typeof prefsData.filters.minScore === 'number') {
         setMinScore(prefsData.filters.minScore);
@@ -107,10 +106,6 @@ export default function Dashboard() {
   }, [jobs, minScore]);
 
   const filteredJobs = useMemo(() => {
-    // Stage 1: Filter by score threshold
-    const aboveThreshold = jobs.filter(job => job.score >= minScore);
-
-    // Stage 2: Filter by tab status
     if (activeFilter === 'all') {
       // Exclude Rejected jobs from "All Jobs" tab to keep it focused
       // and only show those above threshold
@@ -140,26 +135,6 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Failed to update status:', error);
-    }
-  };
-
-  const handleSaveNotes = async () => {
-    if (!selectedJob) return;
-    try {
-      const res = await fetch(`/api/jobs?id=${selectedJob.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes })
-      });
-
-      if (res.ok) {
-        setJobs(prev => prev.map(job =>
-          job.id === selectedJob.id ? { ...job, notes } : job
-        ));
-        setSelectedJob(null);
-      }
-    } catch (error) {
-      console.error('Failed to save notes:', error);
     }
   };
 
@@ -216,6 +191,31 @@ export default function Dashboard() {
     }
   };
 
+  const handleRunDiscovery = async () => {
+    setDiscoveryRunning(true);
+    setDiscoveryMessage('');
+
+    try {
+      const res = await fetch('/api/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxJobs: 5 }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Discovery failed');
+      }
+
+      setDiscoveryMessage(`Saved ${data.saved || 0}/${data.discovered || 0} jobs`);
+      await fetchJobs();
+    } catch (error) {
+      setDiscoveryMessage(error instanceof Error ? error.message : 'Discovery failed');
+    } finally {
+      setDiscoveryRunning(false);
+    }
+  };
+
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -229,24 +229,17 @@ export default function Dashboard() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-background font-sans selection:bg-primary/20">
+    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground selection:bg-primary/20">
       {/* Professional Nav */}
-      <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between h-14 items-center">
-            <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                <Bot className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-lg font-bold tracking-tight">
-                CareerPilot<span className="text-primary">.ai</span>
-              </span>
-            </Link>
+          <div className="flex h-16 items-center justify-between">
+            <BrandLink />
 
             <div className="flex items-center gap-2">
-              <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-secondary rounded-full border border-border mr-2">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Autonomous Agent Online</span>
+              <div className="mr-2 hidden items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 md:flex">
+                <div className="h-1.5 w-1.5 rounded-full bg-[#73c66b]" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#596174]">Demo workspace live</span>
               </div>
 
               <button className="p-2 rounded-md hover:bg-secondary transition-colors relative">
@@ -268,7 +261,7 @@ export default function Dashboard() {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 p-1 hover:bg-secondary rounded-lg transition-all"
                 >
-                  <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#e7c6bc] bg-[#f4c8bd] text-xs font-black text-primary">
                     {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                   </div>
                 </button>
@@ -279,13 +272,13 @@ export default function Dashboard() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-xl shadow-2xl py-2 z-50 overflow-hidden"
+                      className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border border-border bg-white py-2 shadow-2xl"
                     >
-                      <div className="px-4 py-3 border-b border-border bg-secondary/30">
+                      <div className="border-b border-border bg-secondary px-4 py-3">
                         <p className="text-sm font-bold truncate">{profile?.full_name || 'Member'}</p>
                         <p className="text-[10px] text-muted-foreground truncate font-mono uppercase tracking-tighter">{user?.email}</p>
                         <div className="mt-2 flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-black rounded-full uppercase border border-primary/10">
+                          <span className="rounded-full border border-border bg-white px-2 py-0.5 text-[9px] font-black uppercase text-primary">
                             {profile?.subscription_tier || 'Free'} Plan
                           </span>
                         </div>
@@ -319,38 +312,59 @@ export default function Dashboard() {
       </nav>
 
       {/* Workspace */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700 md:px-6 md:py-10">
 
         {/* Minimal Hero / Stats */}
-        <div className="mb-12">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Command Center</h1>
-          <p className="text-muted-foreground text-sm max-w-2xl">
-            Autonomous agent syncing with LinkedIn, Indeed, and Beehiiv. Gemini is currently analyzing 442 market signals.
-          </p>
+        <div className="mb-10 rounded-lg border border-white/70 bg-white p-6 shadow-2xl shadow-[#8794b8]/20 md:p-8">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#dce1ee] bg-secondary px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#596174]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#73c66b]" />
+                AI job board
+              </div>
+              <h1 className="text-4xl font-black tracking-tight md:text-5xl">Ideal Matches</h1>
+              <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-[#60677b]">
+                CareerPilot ranks live opportunities, prepares application materials, and keeps your shortlist clean.
+              </p>
+            </div>
+            <button
+              onClick={handleRunDiscovery}
+              disabled={discoveryRunning}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-black text-white shadow-xl shadow-primary/15 transition-all hover:-translate-y-0.5 disabled:opacity-60"
+            >
+              {discoveryRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {discoveryRunning ? 'Running Discovery' : 'Run Discovery'}
+            </button>
+          </div>
+          {discoveryMessage && (
+            <div className="mt-5 rounded-lg border border-border bg-secondary px-4 py-3 text-xs font-bold text-[#596174]">
+              {discoveryMessage}
+            </div>
+          )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
             {[
               { label: "Jobs Scanned", value: stats.total, icon: Search, color: "text-blue-500" },
               { label: "Top Fits", value: stats.highFit, icon: Sparkles, color: "text-amber-500" },
               { label: "Submitted", value: stats.applied, icon: CheckCircle2, color: "text-emerald-500" },
               { label: "Interviews", value: stats.interviewing, icon: Clock, color: "text-primary" },
             ].map((stat, i) => (
-              <div key={i} className="glass-card p-5 group hover:border-primary/50 transition-all cursor-default">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`p-2 rounded-lg bg-secondary border border-border ${stat.color} transition-transform group-hover:scale-110`}>
+              <div key={i} className="rounded-lg border border-border bg-secondary p-5 transition-all hover:border-[#cbd1df]">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className={`rounded-lg border border-border bg-white p-2 ${stat.color}`}>
                     <stat.icon className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#596174]">{stat.label}</span>
                 </div>
-                <div className="text-3xl font-bold font-mono tracking-tighter">{stat.value}</div>
+                <div className="text-3xl font-black tracking-tight">{stat.value}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* View Controls */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div className="flex p-1 bg-secondary border border-border rounded-xl w-fit">
+        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div className="flex w-full overflow-x-auto rounded-lg border border-border bg-white p-1 md:w-fit">
             {FILTER_TABS.map((tab) => {
               let count;
               if (tab.key === 'all') {
@@ -364,13 +378,13 @@ export default function Dashboard() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveFilter(tab.key)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeFilter === tab.key
-                    ? 'bg-card text-foreground shadow-sm ring-1 ring-border'
-                    : 'text-muted-foreground hover:text-foreground'
+                  className={`flex shrink-0 items-center gap-2 rounded-md px-4 py-2 text-xs font-black transition-all ${activeFilter === tab.key
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-[#596174] hover:bg-secondary hover:text-foreground'
                     }`}
                 >
                   {tab.label}
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${activeFilter === tab.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                  <span className={`rounded-full px-1.5 py-0.5 text-[9px] ${activeFilter === tab.key ? 'bg-white/15 text-white' : 'bg-secondary text-[#596174]'}`}>
                     {count}
                   </span>
                 </button>
@@ -378,18 +392,18 @@ export default function Dashboard() {
             })}
           </div>
 
-          <div className="relative group">
+          <div className="relative group md:ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search robot feed..."
-              className="pl-10 pr-4 py-2 bg-card border border-border rounded-xl text-xs focus:ring-1 focus:ring-primary focus:outline-none w-full md:w-64 transition-all group-hover:border-zinc-400"
+              placeholder="Search jobs..."
+              className="w-full rounded-lg border border-border bg-white py-2.5 pl-10 pr-4 text-xs font-bold transition-all placeholder:text-[#9ca3b7] focus:outline-none focus:ring-1 focus:ring-primary md:w-64"
             />
           </div>
 
           <div className="flex flex-col items-end gap-2 text-right">
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary border border-border rounded-lg">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Threshold</span>
+            <div className="flex items-center gap-1.5 rounded-lg border border-border bg-white px-2 py-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#596174]">Threshold</span>
               <span className="text-xs font-black text-primary font-mono">{minScore}.0</span>
             </div>
             <div className="flex items-center gap-2">
@@ -418,17 +432,17 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Main Feed */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="space-y-5 lg:col-span-8">
             {loading && jobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-32 pro-card border-dashed">
                 <Loader2 className="w-8 h-8 animate-spin text-primary/50 mb-3" />
-                <p className="text-sm font-medium text-muted-foreground">Synchronizing agent database...</p>
+                <p className="text-sm font-medium text-muted-foreground">Loading your job feed...</p>
               </div>
             ) : filteredJobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-32 pro-card border-dashed bg-secondary/20">
                 <Briefcase className="w-10 h-10 text-muted-foreground/30 mb-4" />
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">No active nodes in this sector</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">Adjust your filters or wait for the next robot scan.</p>
+                <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">No jobs in this view</p>
+                <p className="mt-1 text-xs text-muted-foreground/60">Adjust your filters or run discovery.</p>
                 {jobs.length > 0 && (
                   <p className="text-xs text-amber-500 font-bold mt-4 animate-pulse">
                     {jobs.length} jobs detected below current threshold ({minScore})
@@ -444,19 +458,20 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="glass-card p-6 group pro-card-hover relative"
+                    onClick={() => setSelectedJob(job)}
+                    className="pro-card-hover group relative cursor-pointer overflow-hidden rounded-lg border border-border bg-white p-5 shadow-sm md:p-6"
                   >
                     {/* Score Indicator */}
-                    <div className="absolute top-0 left-0 w-1 h-full bg-border group-hover:bg-primary transition-colors" />
+                    <div className="absolute left-0 top-0 h-full w-1 bg-[#c9b9ff] transition-colors group-hover:bg-primary" />
 
-                    <div onClick={() => window.location.href = `/jobs/${job.id}`} className="cursor-pointer">
+                    <div>
                       <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-11 h-11 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-border group-hover:border-primary/20 transition-colors">
+                        <div className="flex min-w-0 items-center gap-4">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary transition-colors group-hover:border-[#cbd1df]">
                             <Briefcase className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-bold tracking-tight">{job.title}</h3>
+                            <h3 className="text-lg font-black leading-tight tracking-tight">{job.title}</h3>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-sm font-medium text-muted-foreground">{job.company}</span>
                               <span className="text-muted-foreground/30">•</span>
@@ -468,19 +483,19 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className={`text-3xl font-black tracking-tighter ${job.score >= 8 ? 'text-emerald-500' : 'text-primary'}`}>
+                          <div className={`text-3xl font-black tracking-tight ${job.score >= 8 ? 'text-emerald-600' : 'text-primary'}`}>
                             {job.score}<span className="text-[10px] font-bold text-muted-foreground ml-0.5">/10</span>
                           </div>
-                          <div className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground">Match Accuracy</div>
+                          <div className="text-[9px] font-black uppercase tracking-tight text-muted-foreground">Match Score</div>
                         </div>
                       </div>
 
-                      <div className="py-3 px-4 bg-secondary/50 rounded-xl border border-border/50 mb-5 relative group/quote">
+                      <div className="group/quote relative mb-5 rounded-lg border border-border bg-secondary px-4 py-3">
                         <div className="text-xs text-foreground italic leading-relaxed line-clamp-2 pr-6">
                           {job.reasoning ? (
                             `"${job.reasoning}"`
                           ) : (
-                            <span className="opacity-50 font-normal not-italic">Node active. Analysis protocol initiated... awaiting next scan cycle.</span>
+                            <span className="font-normal not-italic opacity-50">Analysis pending. Run discovery to generate reasoning.</span>
                           )}
                         </div>
                         <Brain className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/30 group-hover/quote:text-primary transition-colors" />
@@ -490,13 +505,13 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex gap-1.5">
                         {job.tags?.slice(0, 3).map(tag => (
-                          <span key={tag} className="text-[9px] font-bold px-2 py-0.5 bg-secondary text-muted-foreground border border-border rounded-full uppercase tracking-tight">
+                          <span key={tag} className="rounded-full border border-border bg-secondary px-2 py-0.5 text-[9px] font-black uppercase tracking-tight text-[#596174]">
                             {tag}
                           </span>
                         ))}
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3" onClick={(event) => event.stopPropagation()}>
                         <StatusDropdown
                           jobId={job.id}
                           currentStatus={job.status}
@@ -504,10 +519,16 @@ export default function Dashboard() {
                         />
                         <div className="h-4 w-[1px] bg-border" />
                         <div className="flex items-center gap-1">
-                          <button onClick={() => { setSelectedJob(job); setNotes(job.notes || ''); }} className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary">
+                          <button onClick={() => setSelectedJob(job)} className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary">
                             <MessageSquare className="w-4 h-4" />
                           </button>
-                          <button onClick={() => window.location.href = `/jobs/${job.id}`} className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary">
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              window.location.href = `/jobs/${job.id}`;
+                            }}
+                            className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary"
+                          >
                             <ArrowRight className="w-4 h-4" />
                           </button>
                         </div>
@@ -522,11 +543,11 @@ export default function Dashboard() {
           {/* Side Panels */}
           <div className="lg:col-span-4 space-y-8">
             {/* Live Console */}
-            <div className="glass-card overflow-hidden">
-              <div className="bg-secondary/50 px-5 py-3 border-b border-border flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <div className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-border bg-secondary px-5 py-3">
+                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#596174]">
                   <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                  Agent Telemetry
+                  Discovery Activity
                 </span>
                 <div className="flex gap-1">
                   <div className="w-2 h-2 rounded-full bg-red-400" />
@@ -534,17 +555,17 @@ export default function Dashboard() {
                   <div className="w-2 h-2 rounded-full bg-green-400" />
                 </div>
               </div>
-              <div className="p-5 font-mono text-[10px] space-y-3 bg-card h-64 overflow-y-auto">
-                <div className="opacity-40">-- INITIATING CLOUD SYNC --</div>
-                <div className="text-zinc-500">[0.0001s] <span className="text-foreground">Fetching market signals (n8n_v3)</span></div>
-                <div className="text-zinc-500">[0.0004s] <span className="text-primary font-bold">GEMINI ANALYZING 44 JOBS...</span></div>
-                <div className="text-zinc-500">[0.0009s] <span className="text-emerald-500">3 HIGH-FIT MATCHES DETECTED</span></div>
-                <div className="text-zinc-500 text-xs mt-3 animate-pulse text-primary font-bold">_ AGENT STANDBY.</div>
+              <div className="h-64 space-y-3 overflow-y-auto bg-white p-5 text-[10px]">
+                <div className="font-black uppercase tracking-widest text-[#9ca3b7]">Ready</div>
+                <div className="text-[#596174]">Market search uses your saved profile and filters.</div>
+                <div className="font-bold text-primary">Gemini scoring, culture fit, resume, and cover letter run in parallel.</div>
+                <div className="font-bold text-emerald-600">High-fit matches appear in the feed.</div>
+                <div className="mt-3 animate-pulse font-black text-primary">Run discovery when you want fresh jobs.</div>
 
                 <div className="mt-6 pt-4 border-t border-border/50">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[9px] text-muted-foreground uppercase font-bold">System Health</span>
-                    <span className="text-[9px] text-green-500 font-bold">OPTIMAL</span>
+                    <span className="text-[9px] font-bold uppercase text-muted-foreground">Demo Health</span>
+                    <span className="text-[9px] font-bold text-green-600">READY</span>
                   </div>
                   <div className="h-1 bg-secondary rounded-full overflow-hidden">
                     <motion.div
@@ -561,114 +582,127 @@ export default function Dashboard() {
             <div className="space-y-3">
               <button
                 onClick={() => window.location.href = '/settings'}
-                className="w-full py-4 bg-primary text-white hover:bg-primary/90 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 transition-all hover:translate-y-[-2px] active:translate-y-0"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-4 font-black text-white shadow-xl shadow-primary/15 transition-all hover:-translate-y-0.5"
               >
                 <Settings className="w-4 h-4" />
-                Optimization Engine
+                Tune Preferences
               </button>
-              <div className="pro-card p-4 bg-secondary/20 border-dashed text-center">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Last Data Integrity Check</p>
-                <p className="text-xs font-mono">22 JAN 2026 - 18:04:11</p>
+              <div className="pro-card border-dashed bg-white p-4 text-center">
+                <p className="mb-1 text-[10px] font-black uppercase text-[#596174]">Demo Ready</p>
+                <p className="text-xs font-bold text-[#60677b]">Standalone discovery runs without n8n.</p>
               </div>
             </div>
           </div>
         </div>
       </main >
 
-      {/* Note Modal */}
+      {/* Job Detail Drawer */}
       <AnimatePresence>
-        {
-          selectedJob && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setSelectedJob(null)} />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative w-full max-w-4xl max-h-[90vh] bg-card border border-border rounded-2xl shadow-2xl p-8 overflow-y-auto"
-              >
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold tracking-tight mb-1">{selectedJob.company}</h3>
-                    <p className="text-sm text-muted-foreground">{selectedJob.title}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedJob.score >= 8 ? 'bg-green-500/10 text-green-500' :
-                        selectedJob.score >= 6 ? 'bg-blue-500/10 text-blue-500' :
-                          'bg-gray-500/10 text-gray-500'
-                        }`}>
-                        Score: {selectedJob.score}/10
-                      </span>
-                      {selectedJob.url && (
-                        <a href={selectedJob.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                          View Posting <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  <button onClick={() => setSelectedJob(null)} className="text-muted-foreground hover:text-foreground">
-                    <X className="w-5 h-5" />
-                  </button>
+        {selectedJob && (
+          <div className="fixed inset-0 z-[100]">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-primary/20 backdrop-blur-sm"
+              onClick={() => setSelectedJob(null)}
+            />
+            <motion.aside
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+              className="absolute right-0 top-0 h-full w-full overflow-y-auto border-l border-border bg-white shadow-2xl md:w-[520px]"
+            >
+              <div className="sticky top-0 z-10 border-b border-border bg-white/95 px-6 py-5 backdrop-blur-md">
+                <button
+                  onClick={() => setSelectedJob(null)}
+                    className="absolute right-4 top-4 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  aria-label="Close job details"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="pr-12">
+                  <h2 className="text-xl font-black tracking-tight leading-tight">{selectedJob.title}</h2>
+                  <p className="text-sm font-medium text-muted-foreground mt-1">{selectedJob.company}</p>
                 </div>
 
-                {/* Reasoning */}
-                {selectedJob.reasoning && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <Brain className="w-4 h-4 text-primary" />
-                      AI Analysis
-                    </h4>
-                    <div className="bg-secondary/50 border border-border rounded-xl p-4 text-sm text-muted-foreground italic">
-                      "{selectedJob.reasoning}"
-                    </div>
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black ${selectedJob.score >= 8 ? 'bg-emerald-500/10 text-emerald-500' :
+                    selectedJob.score >= 6 ? 'bg-blue-500/10 text-blue-500' :
+                      'bg-zinc-500/10 text-muted-foreground'
+                    }`}>
+                    {selectedJob.score}/10 match
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-secondary border border-border text-muted-foreground">
+                    {selectedJob.status}
+                  </span>
+                  {selectedJob.url && (
+                    <a href={selectedJob.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/10">
+                      Posting <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+
+                {selectedJob.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {selectedJob.tags.map(tag => (
+                      <span key={tag} className="rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight text-muted-foreground">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 )}
+              </div>
 
-                {/* Tailored Resume */}
-                {selectedJob.tailoredResume && selectedJob.tailoredResume !== 'N/A' && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-primary" />
-                      Tailored Resume
-                    </h4>
-                    <div className="bg-secondary/50 border border-border rounded-xl p-4 text-sm whitespace-pre-wrap">
-                      {selectedJob.tailoredResume}
-                    </div>
+              <div className="px-6 py-6 space-y-8">
+                <section>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-primary" />
+                    Tailored Resume
+                  </h3>
+                  <div className="rounded-lg border border-border bg-secondary p-4 text-sm leading-relaxed">
+                    {selectedJob.tailoredResume && selectedJob.tailoredResume !== 'N/A' ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{selectedJob.tailoredResume}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">No tailored resume generated for this job.</p>
+                    )}
                   </div>
-                )}
+                </section>
 
-                {/* Cover Letter */}
-                {selectedJob.coverLetter && selectedJob.coverLetter !== 'N/A' && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <section>
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-primary" />
                       Cover Letter
-                    </h4>
-                    <div className="bg-secondary/50 border border-border rounded-xl p-4 text-sm whitespace-pre-wrap">
-                      {selectedJob.coverLetter}
-                    </div>
+                    </h3>
+                    {selectedJob.coverLetter && selectedJob.coverLetter !== 'N/A' && (
+                      <button
+                        onClick={() => navigator.clipboard.writeText(selectedJob.coverLetter || '')}
+                        className="rounded-full bg-primary px-4 py-2 text-xs font-black text-white transition-colors hover:bg-primary/90"
+                      >
+                        Copy Cover Letter
+                      </button>
+                    )}
                   </div>
-                )}
-
-                {/* Notes */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold mb-2">Notes</h4>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Log internal communication or agent instructions..."
-                    className="w-full h-32 bg-secondary border border-border rounded-xl p-4 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all"
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <button onClick={() => setSelectedJob(null)} className="flex-1 py-3 bg-secondary hover:bg-border rounded-xl text-sm font-bold transition-colors">Close</button>
-                  <button onClick={handleSaveNotes} className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20">Save Notes</button>
-                </div>
-              </motion.div>
-            </div>
-          )
-        }
-      </AnimatePresence >
+                  <div className="rounded-lg border border-border bg-secondary p-4 text-sm leading-relaxed">
+                    {selectedJob.coverLetter && selectedJob.coverLetter !== 'N/A' ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{selectedJob.coverLetter}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">No cover letter generated for this job.</p>
+                    )}
+                  </div>
+                </section>
+              </div>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Confirmation Modal */}
       <AnimatePresence>
@@ -727,11 +761,11 @@ export default function Dashboard() {
       <footer className="border-t border-border py-8 bg-card/50">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground">
-            Google Hackathon Edition 2026 • Gemini 3.5 Core
+            CareerPilot AI demo workspace
           </div>
           <div className="flex items-center gap-6">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase cursor-pointer hover:text-primary transition-colors">Privacy Neuralink</span>
-            <span className="text-[10px] font-bold text-muted-foreground uppercase cursor-pointer hover:text-primary transition-colors">Terms of Synth</span>
+            <span className="cursor-pointer text-[10px] font-bold uppercase text-muted-foreground transition-colors hover:text-primary">Privacy</span>
+            <span className="cursor-pointer text-[10px] font-bold uppercase text-muted-foreground transition-colors hover:text-primary">Terms</span>
           </div>
         </div>
       </footer>

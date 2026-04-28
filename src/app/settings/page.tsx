@@ -6,19 +6,17 @@ import {
     ArrowLeft,
     Save,
     Loader2,
-    Mail,
     Bell,
     Filter,
     User,
     CheckCircle2,
-    Sliders,
     Zap,
     Shield,
-    Smartphone,
     Database,
     Globe
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { createClient } from '@/lib/supabase/client';
+import BrandLink from '../components/BrandLink';
 import ThemeToggle from '../components/ThemeToggle';
 
 interface Preferences {
@@ -45,7 +43,7 @@ interface Preferences {
     };
 }
 
-const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Remote', 'Internship', 'Freelance'];
+const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -55,9 +53,20 @@ export default function SettingsPage() {
     const [saved, setSaved] = useState(false);
     const [locationInput, setLocationInput] = useState('');
     const [activeTab, setActiveTab] = useState('identity');
+    const [hasOAuthSession, setHasOAuthSession] = useState(false);
+
+    const googleAccountConnected = !isDemoMode && hasOAuthSession;
 
     useEffect(() => {
         fetchPreferences();
+        if (isDemoMode) {
+            setHasOAuthSession(false);
+            return;
+        }
+
+        createClient().auth.getSession().then(({ data }) => {
+            setHasOAuthSession(Boolean(data.session));
+        });
     }, []);
 
     async function fetchPreferences() {
@@ -117,20 +126,9 @@ export default function SettingsPage() {
         });
     };
 
-    const toggleJobType = (type: string) => {
-        if (!prefs) return;
-        const types = prefs.filters.jobTypes.includes(type)
-            ? prefs.filters.jobTypes.filter(t => t !== type)
-            : [...prefs.filters.jobTypes, type];
-        setPrefs({
-            ...prefs,
-            filters: { ...prefs.filters, jobTypes: types }
-        });
-    };
-
     if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="flex min-h-screen items-center justify-center bg-background">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
@@ -138,7 +136,7 @@ export default function SettingsPage() {
 
     if (!prefs) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="flex min-h-screen items-center justify-center bg-background">
                 <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Initialization Failure</p>
             </div>
         );
@@ -147,25 +145,24 @@ export default function SettingsPage() {
     return (
         <div className="min-h-screen bg-background selection:bg-primary/20">
             {/* Nav */}
-            <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
-                <div className="max-w-4xl mx-auto px-6">
-                    <div className="flex items-center justify-between h-14">
+            <nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
+                <div className="mx-auto max-w-5xl px-6">
+                    <div className="flex h-16 items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => router.push('/dashboard')}
-                                className="p-2 hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-border"
+                                className="rounded-lg border border-transparent p-2 transition-colors hover:border-border hover:bg-secondary"
                             >
                                 <ArrowLeft className="w-4 h-4 text-muted-foreground" />
                             </button>
-                            <h1 className="text-sm font-bold tracking-tight">System Configuration</h1>
+                            <BrandLink />
                         </div>
                         <div className="flex items-center gap-4">
                             <ThemeToggle />
-                            <div className="h-6 w-[1px] bg-border" />
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all shadow-xl shadow-primary/20 ${saved
+                                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black shadow-xl shadow-primary/15 transition-all ${saved
                                     ? 'bg-emerald-500 text-white shadow-emerald-500/20'
                                     : 'bg-primary hover:bg-primary/90 text-white'
                                     }`}
@@ -184,19 +181,22 @@ export default function SettingsPage() {
                 </div>
             </nav>
 
-            <main className="max-w-4xl mx-auto px-6 py-12 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <main className="mx-auto max-w-5xl space-y-10 px-6 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                 {/* Section header */}
-                <div className="border-b border-border pb-8">
-                    <h2 className="text-3xl font-black tracking-tighter">Preferences</h2>
-                    <p className="text-sm text-muted-foreground mt-2 max-w-lg">
-                        Fine-tune your autonomous agent's decision-making parameters and alert thresholds.
+                <div className="rounded-lg border border-white/70 bg-white p-8 shadow-2xl shadow-[#8794b8]/20">
+                    <p className="mb-4 inline-flex rounded-full border border-border bg-secondary px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#596174]">
+                        Profile controls
+                    </p>
+                    <h2 className="text-4xl font-black tracking-tight">Preferences</h2>
+                    <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-[#60677b]">
+                        Tune your profile, alerts, filters, and account status for better job discovery.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
                     {/* Left: Section Selection */}
-                    <div className="md:col-span-3 space-y-2">
+                    <div className="space-y-2 md:col-span-3">
                         {[
                             { key: 'identity', label: 'Identity', icon: User },
                             { key: 'telemetry', label: 'Telemetry', icon: Bell },
@@ -206,7 +206,7 @@ export default function SettingsPage() {
                             <button
                                 key={item.key}
                                 onClick={() => setActiveTab(item.key)}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === item.key ? 'bg-primary/10 text-primary border border-primary/20' : 'text-muted-foreground hover:bg-secondary'}`}
+                                className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-xs font-black transition-all ${activeTab === item.key ? 'border border-primary bg-primary text-white' : 'border border-transparent text-[#596174] hover:border-border hover:bg-white'}`}
                             >
                                 <item.icon className="w-4 h-4" />
                                 {item.label}
@@ -215,7 +215,7 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Right: Form Content */}
-                    <div className="md:col-span-9 space-y-12">
+                    <div className="space-y-10 rounded-lg border border-border bg-white p-6 shadow-sm md:col-span-9 md:p-8">
 
                         {/* Profile Block */}
                         {activeTab === 'identity' && (
@@ -265,7 +265,7 @@ export default function SettingsPage() {
                                             placeholder="Paste your existing resume points, projects, and career history here. The AI will use this as the ONLY source of truth for tailoring."
                                             className="w-full bg-secondary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all font-medium min-h-[160px] resize-none"
                                         />
-                                        <p className="text-[9px] text-muted-foreground ml-1">Provide your real experience to prevent the AI from "inventing" fake projects.</p>
+                                        <p className="text-[9px] text-muted-foreground ml-1">Provide your real experience to prevent the AI from inventing fake projects.</p>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Core Skills (One per line)</label>
@@ -424,7 +424,9 @@ export default function SettingsPage() {
                                                     <p className="text-[10px] text-muted-foreground">Primary authentication</p>
                                                 </div>
                                             </div>
-                                            <span className="text-[10px] font-bold text-emerald-500 uppercase">Connected</span>
+                                            <span className={`text-[10px] font-bold uppercase ${googleAccountConnected ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                                                {googleAccountConnected ? 'Connected' : 'Not Connected'}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="pt-4 border-t border-border">

@@ -13,39 +13,37 @@
 }
 
 :root {
-  /* Light Mode - Cloud & Glass */
-  --background: #ffffff;
-  --foreground: #09090b;
-  --primary: #2563eb;
-  --secondary: #f4f4f5;
-  --muted: #f4f4f5;
-  --accent: #2563eb;
-  --border: #e4e4e7;
+  /* Light Mode - CareerPilot */
+  --background: #eef3ff;
+  --foreground: #080915;
+  --primary: #090a1f;
+  --secondary: #f6f8ff;
+  --muted: #f6f8ff;
+  --accent: #ff7d2d;
+  --border: #dfe4ef;
   --card: #ffffff;
-  --card-foreground: #09090b;
+  --card-foreground: #080915;
 
-  /* Glass Tokens - Light */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(9, 9, 11, 0.08);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  /* Panel Tokens - Light */
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(203, 209, 223, 0.95);
+  --glass-shadow: 0 18px 50px -32px rgba(60, 74, 120, 0.45);
 }
 
 .dark {
-  /* Dark Mode - Void & Neon */
-  --background: #09090b;
-  --foreground: #fafafa;
-  --primary: #3b82f6;
-  --secondary: #18181b;
-  --muted: #18181b;
-  --accent: #3b82f6;
-  --border: #27272a;
-  --card: #09090b;
-  --card-foreground: #fafafa;
+  --background: #070b14;
+  --foreground: #f8fafc;
+  --primary: #ff9a4d;
+  --secondary: #111827;
+  --muted: #111827;
+  --accent: #ff9a4d;
+  --border: #243044;
+  --card: #0d1320;
+  --card-foreground: #f8fafc;
 
-  /* Glass Tokens - Dark */
-  --glass-bg: rgba(9, 9, 11, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(13, 19, 32, 0.94);
+  --glass-border: rgba(55, 70, 96, 0.9);
+  --glass-shadow: 0 22px 60px -34px rgba(0, 0, 0, 0.85);
 }
 
 body {
@@ -65,31 +63,97 @@ body {
 /* Glasmorphism Utilities */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
-  border-radius: 1rem;
+  border-radius: 0.5rem;
 }
 
 .glass-nav {
-  background: var(--glass-bg);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--glass-border);
   z-index: 50;
 }
 
+.dark .glass-nav {
+  background: rgba(13, 19, 32, 0.92);
+}
+
+.dark .bg-white,
+.dark .bg-\[\#ffffff\] {
+  background-color: var(--card) !important;
+}
+
+.dark .bg-\[\#eef3ff\],
+.dark .bg-\[\#f6f8ff\],
+.dark .bg-\[\#f5f7fd\],
+.dark .bg-\[\#fafbff\],
+.dark .bg-\[\#c5cad5\] {
+  background-color: var(--secondary) !important;
+}
+
+.dark .text-\[\#080915\],
+.dark .text-\[\#090a1f\],
+.dark .text-foreground {
+  color: var(--foreground) !important;
+}
+
+.dark .text-\[\#50566b\],
+.dark .text-\[\#596174\],
+.dark .text-\[\#5d6476\],
+.dark .text-\[\#60677b\],
+.dark .text-\[\#6c7284\],
+.dark .text-\[\#7a8294\],
+.dark .text-\[\#8790a6\],
+.dark .text-\[\#8b92a3\],
+.dark .text-\[\#9ca3b7\],
+.dark .text-muted-foreground {
+  color: #aeb8cc !important;
+}
+
+.dark .border-border,
+.dark .border-\[\#dce1ee\],
+.dark .border-\[\#dbe1ed\],
+.dark .border-\[\#dfe4ef\],
+.dark .border-\[\#e3e6ee\],
+.dark .border-\[\#e4e7f0\],
+.dark .border-\[\#e5e8f0\],
+.dark .border-\[\#e6e8ef\],
+.dark .border-\[\#e7e9f1\],
+.dark .border-\[\#e7eaf2\],
+.dark .border-\[\#dde1ea\],
+.dark .border-\[\#cbd1df\] {
+  border-color: var(--border) !important;
+}
+
+.dark input,
+.dark textarea {
+  color: var(--foreground);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #7f8aa0;
+}
+
+.dark .shadow-\[\#8794b8\]\/20,
+.dark .shadow-\[\#8794b8\]\/25,
+.dark .shadow-\[\#8794b8\]\/30,
+.dark .shadow-\[\#9aa8d0\]\/20 {
+  box-shadow: 0 22px 60px -34px rgba(0, 0, 0, 0.85) !important;
+}
+
 .pro-card {
   background-color: var(--card);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pro-card-hover:hover {
-  border-color: var(--primary);
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
+  border-color: #cbd1df;
+  box-shadow: 0 20px 50px -34px rgba(60, 74, 120, 0.65);
   transform: translateY(-2px);
 }
 

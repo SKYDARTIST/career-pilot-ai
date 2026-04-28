@@ -5,9 +5,6 @@ import ReactMarkdown from 'react-markdown';
 import { useParams, useRouter } from 'next/navigation';
 import {
     ArrowLeft,
-    Briefcase,
-    Clock,
-    Brain,
     FileText,
     ExternalLink,
     Loader2,
@@ -21,8 +18,9 @@ import {
     Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import ThemeToggle from '../../components/ThemeToggle';
 import ReasoningExplainer from '../../components/ReasoningExplainer';
+import BrandLink from '../../components/BrandLink';
+import ThemeToggle from '../../components/ThemeToggle';
 
 interface Job {
     id: number;
@@ -40,6 +38,14 @@ interface Job {
     coverLetter?: string;
 }
 
+type DocumentTab = 'details' | 'resume' | 'cover';
+
+const documentTabs: Array<{ key: DocumentTab; label: string; icon: typeof FileText }> = [
+    { key: 'details', label: 'Overview', icon: FileText },
+    { key: 'resume', label: 'Tailored Resume', icon: Sparkles },
+    { key: 'cover', label: 'Cover Letter', icon: MessageSquare },
+];
+
 export default function JobDetailsPage() {
     const params = useParams();
     const router = useRouter();
@@ -48,27 +54,27 @@ export default function JobDetailsPage() {
     const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
     const [copied, setCopied] = useState(false);
-    const [activeTab, setActiveTab] = useState<'details' | 'resume' | 'cover'>('details');
+    const [activeTab, setActiveTab] = useState<DocumentTab>('details');
 
     useEffect(() => {
+        async function fetchJob() {
+            try {
+                const res = await fetch(`/api/jobs/${params.id}`);
+                if (!res.ok) throw new Error('Job not found');
+                const data = await res.json();
+                setJob(data);
+                setNotes(data.notes || '');
+            } catch (error) {
+                console.error('Failed to fetch job:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
         if (params.id) {
             fetchJob();
         }
     }, [params.id]);
-
-    async function fetchJob() {
-        try {
-            const res = await fetch(`/api/jobs/${params.id}`);
-            if (!res.ok) throw new Error('Job not found');
-            const data = await res.json();
-            setJob(data);
-            setNotes(data.notes || '');
-        } catch (error) {
-            console.error('Failed to fetch job:', error);
-        } finally {
-            setLoading(false);
-        }
-    }
 
     const handleStatusChange = async (newStatus: string) => {
         if (!job) return;
@@ -137,7 +143,7 @@ export default function JobDetailsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="flex min-h-screen items-center justify-center bg-background">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
@@ -145,33 +151,34 @@ export default function JobDetailsPage() {
 
     if (!job) {
         return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+            <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
                 <XCircle className="w-12 h-12 text-destructive" />
-                <h1 className="text-xl font-bold">Node missing from grid</h1>
+                <h1 className="text-xl font-bold">Job not found</h1>
                 <button
                     onClick={() => router.push('/dashboard')}
                     className="text-primary hover:underline flex items-center gap-2 font-bold text-sm"
                 >
-                    <ArrowLeft className="w-4 h-4" /> Return to Feed
+                    <ArrowLeft className="w-4 h-4" /> Return to dashboard
                 </button>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-background selection:bg-primary/20 font-sans">
+        <div className="min-h-screen bg-background font-sans text-foreground selection:bg-primary/20">
             {/* Nav */}
-            <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+            <nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex items-center h-14 justify-between">
+                    <div className="flex h-16 items-center justify-between">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => router.push('/dashboard')}
-                                className="p-2 hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-border"
+                                className="rounded-lg border border-transparent p-2 transition-colors hover:border-border hover:bg-secondary"
                             >
                                 <ArrowLeft className="w-4 h-4 text-muted-foreground" />
                             </button>
-                            <div className="h-6 w-[1px] bg-border mx-1" />
+                            <BrandLink />
+                            <div className="mx-1 h-6 w-[1px] bg-border" />
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold text-foreground">{job.company}</span>
                                 <span className="text-muted-foreground/30">•</span>
@@ -179,31 +186,30 @@ export default function JobDetailsPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
+                            <ThemeToggle />
                             <button
                                 onClick={handleDelete}
-                                className="p-2 hover:bg-red-500/5 rounded-lg transition-colors text-red-500/50 hover:text-red-500"
-                                title="Remove node"
+                                className="rounded-lg p-2 text-red-500/50 transition-colors hover:bg-red-500/5 hover:text-red-500"
+                                title="Remove job"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
-                            <div className="h-6 w-[1px] bg-border mx-1" />
-                            <ThemeToggle />
                         </div>
                     </div>
                 </div>
             </nav>
 
-            <main className="max-w-7xl mx-auto px-6 py-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <main className="mx-auto max-w-7xl px-6 py-10">
+                <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
                     {/* Primary Content */}
                     <div className="lg:col-span-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Summary Block */}
-                        <div className="flex items-start justify-between mb-8">
+                        <div className="mb-8 rounded-lg border border-white/70 bg-white p-8 shadow-2xl shadow-[#8794b8]/20 md:flex md:items-start md:justify-between">
                             <div className="space-y-4">
                                 <div className="flex flex-wrap gap-2 mb-2">
                                     <div className="flex items-center gap-2 px-3 py-1 bg-secondary rounded-full border border-border w-fit">
                                         <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Market Node #{job.id}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Job #{job.id}</span>
                                     </div>
                                     {job.tags && job.tags.map((tag, idx) => (
                                         <div key={idx} className="flex items-center gap-2 px-3 py-1 bg-primary/5 rounded-full border border-primary/10 w-fit">
@@ -211,7 +217,7 @@ export default function JobDetailsPage() {
                                         </div>
                                     ))}
                                 </div>
-                                <h2 className="text-4xl font-black tracking-tighter text-foreground leading-[0.9]">{job.title}</h2>
+                                <h2 className="text-4xl font-black leading-tight tracking-tight text-foreground">{job.title}</h2>
                                 <div className="flex items-center gap-4 text-muted-foreground font-medium">
                                     <span className="text-lg">{job.company}</span>
                                     <span className="text-border">|</span>
@@ -221,11 +227,11 @@ export default function JobDetailsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="text-right p-6 bg-secondary/30 border border-border rounded-2xl min-w-[120px]">
-                                <div className={`text-5xl font-black tracking-tighter ${job.score >= 8 ? 'text-emerald-500' : 'text-primary'}`}>
+                            <div className="mt-6 min-w-[120px] rounded-lg border border-border bg-secondary p-6 text-right md:mt-0">
+                                <div className={`text-5xl font-black tracking-tight ${job.score >= 8 ? 'text-emerald-600' : 'text-primary'}`}>
                                     {job.score}
                                 </div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Accuracy</div>
+                                <div className="mt-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Match Score</div>
                             </div>
                         </div>
 
@@ -236,18 +242,14 @@ export default function JobDetailsPage() {
 
                         {/* Document Tabs */}
                         <div className="space-y-6">
-                            <div className="flex gap-1 p-1 bg-secondary border border-border rounded-xl w-fit">
-                                {[
-                                    { key: 'details', label: 'Overview', icon: FileText },
-                                    { key: 'resume', label: 'Tailored Resume', icon: Sparkles },
-                                    { key: 'cover', label: 'Cover Letter', icon: MessageSquare },
-                                ].map((tab) => (
+                            <div className="flex w-full overflow-x-auto rounded-lg border border-border bg-white p-1 md:w-fit">
+                                {documentTabs.map((tab) => (
                                     <button
                                         key={tab.key}
-                                        onClick={() => setActiveTab(tab.key as any)}
-                                        className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key
-                                            ? 'bg-card text-foreground shadow-sm ring-1 ring-border'
-                                            : 'text-muted-foreground hover:text-foreground'
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className={`flex shrink-0 items-center gap-2 rounded-md px-6 py-2 text-xs font-black transition-all ${activeTab === tab.key
+                                            ? 'bg-primary text-white shadow-sm'
+                                            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                                             }`}
                                     >
                                         <tab.icon className="w-3.5 h-3.5" />
@@ -260,7 +262,7 @@ export default function JobDetailsPage() {
                                 key={activeTab}
                                 initial={{ opacity: 0, scale: 0.99 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="glass-card p-10 min-h-[400px]"
+                                className="min-h-[400px] rounded-lg border border-border bg-white p-6 shadow-sm md:p-10"
                             >
                                 {activeTab === 'details' && (
                                     <div className="space-y-6 max-w-2xl mx-auto">
@@ -268,16 +270,16 @@ export default function JobDetailsPage() {
                                         <textarea
                                             value={notes}
                                             onChange={(e) => setNotes(e.target.value)}
-                                            placeholder="Define your entry strategy or robot instructions..."
-                                            className="w-full h-64 bg-secondary border border-border rounded-2xl p-6 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all resize-none"
+                                            placeholder="Add interview notes, outreach angles, or application reminders..."
+                                            className="h-64 w-full resize-none rounded-lg border border-border bg-secondary p-6 text-sm transition-all focus:outline-none focus:ring-1 focus:ring-primary"
                                         />
                                         <button
                                             onClick={handleSaveNotes}
                                             disabled={saving}
-                                            className="w-full py-4 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
+                                            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-4 font-black text-white shadow-xl shadow-primary/15 transition-all hover:bg-primary/90 disabled:opacity-50"
                                         >
                                             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                                            Commit Local Changes
+                                            Save Notes
                                         </button>
                                     </div>
                                 )}
@@ -286,21 +288,21 @@ export default function JobDetailsPage() {
                                     <div className="space-y-8">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h3 className="text-xl font-bold tracking-tight">Tailored Curriculum Vitae</h3>
-                                                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-black">Optimized for Gemini Recruiter Flow</p>
+                                                <h3 className="text-xl font-black tracking-tight">Tailored Resume</h3>
+                                                <p className="mt-1 text-xs font-black uppercase tracking-widest text-muted-foreground">Generated for this role</p>
                                             </div>
                                             {job.tailoredResume && (
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={handlePrint}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-bold transition-all no-print"
+                                                        className="no-print flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-black text-white transition-all hover:bg-primary/90"
                                                     >
                                                         <FileText className="w-4 h-4" />
                                                         Export PDF
                                                     </button>
                                                     <button
                                                         onClick={() => copyToClipboard(job.tailoredResume || '')}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all no-print"
+                                                        className="no-print flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2 text-xs font-black transition-all hover:bg-border"
                                                     >
                                                         {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                                                         {copied ? 'Captured' : 'Copy Text'}
@@ -309,7 +311,7 @@ export default function JobDetailsPage() {
                                             )}
                                         </div>
                                         {job.tailoredResume ? (
-                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 text-sm leading-relaxed text-foreground min-h-[500px]">
+                                            <div className="min-h-[500px] rounded-lg border border-border bg-secondary p-8 text-sm leading-relaxed text-foreground">
                                                 <div className="prose prose-sm dark:prose-invert max-w-none">
                                                     <ReactMarkdown>{job.tailoredResume}</ReactMarkdown>
                                                 </div>
@@ -328,21 +330,21 @@ export default function JobDetailsPage() {
                                     <div className="space-y-8">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h3 className="text-xl font-bold tracking-tight">Executive Briefing</h3>
-                                                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest font-black">Generated Content for Application Body</p>
+                                                <h3 className="text-xl font-black tracking-tight">Cover Letter</h3>
+                                                <p className="mt-1 text-xs font-black uppercase tracking-widest text-muted-foreground">Generated application copy</p>
                                             </div>
                                             {job.coverLetter && (
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={handlePrint}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-bold transition-all no-print"
+                                                        className="no-print flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-black text-white transition-all hover:bg-primary/90"
                                                     >
                                                         <MessageSquare className="w-4 h-4" />
                                                         Export PDF
                                                     </button>
                                                     <button
                                                         onClick={() => copyToClipboard(job.coverLetter || '')}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-border border border-border rounded-lg text-xs font-bold transition-all no-print"
+                                                        className="no-print flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2 text-xs font-black transition-all hover:bg-border"
                                                     >
                                                         {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                                                         {copied ? 'Captured' : 'Copy Text'}
@@ -351,7 +353,7 @@ export default function JobDetailsPage() {
                                             )}
                                         </div>
                                         {job.coverLetter ? (
-                                            <div className="bg-secondary/50 border border-border rounded-2xl p-8 text-sm leading-relaxed text-foreground min-h-[500px]">
+                                            <div className="min-h-[500px] rounded-lg border border-border bg-secondary p-8 text-sm leading-relaxed text-foreground">
                                                 <div className="prose prose-sm dark:prose-invert max-w-none">
                                                     <ReactMarkdown>{job.coverLetter}</ReactMarkdown>
                                                 </div>
@@ -359,7 +361,7 @@ export default function JobDetailsPage() {
                                         ) : (
                                             <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
                                                 <MessageSquare className="w-16 h-16 mb-6" />
-                                                <p className="text-sm font-black uppercase tracking-[.2em]">Briefing Absent</p>
+                                                <p className="text-sm font-black uppercase tracking-[.2em]">Cover Letter Pending</p>
                                                 <p className="text-[10px] mt-2 max-w-[200px]">Target score below automation criteria (minimum 8.0 required)</p>
                                             </div>
                                         )}
@@ -372,17 +374,17 @@ export default function JobDetailsPage() {
                     {/* Sidebar Panels */}
                     <div className="lg:col-span-4 space-y-8">
                         {/* Status Engine */}
-                        <div className="glass-card p-8">
+                        <div className="rounded-lg border border-border bg-white p-8 shadow-sm">
                             <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-6">
-                                Pipeline Sector
+                                Pipeline Status
                             </h3>
                             <div className="space-y-3">
                                 {['Found', 'Applied', 'Interviewing', 'Offered', 'Rejected'].map((status) => (
                                     <button
                                         key={status}
                                         onClick={() => handleStatusChange(status)}
-                                        className={`w-full px-5 py-3 rounded-xl text-left text-xs font-bold transition-all border group relative overflow-hidden ${job.status === status
-                                            ? 'border-primary bg-primary/5 text-primary'
+                                        className={`group relative w-full overflow-hidden rounded-lg border px-5 py-3 text-left text-xs font-black transition-all ${job.status === status
+                                            ? 'border-primary bg-primary text-white'
                                             : 'border-border text-muted-foreground hover:border-zinc-400 hover:text-foreground'
                                             }`}
                                     >
@@ -400,7 +402,7 @@ export default function JobDetailsPage() {
 
                         {/* External Actions */}
                         <div className="space-y-3">
-                            <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-4 ml-2">
+                            <h3 className="mb-4 ml-2 text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground">
                                 External Links
                             </h3>
                             {job.url && (
@@ -408,22 +410,22 @@ export default function JobDetailsPage() {
                                     href={job.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full py-4 bg-primary text-white hover:bg-primary/90 transition-all rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
+                                    className="flex w-full items-center justify-center gap-3 rounded-full bg-primary py-4 font-black text-white shadow-xl shadow-primary/15 transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]"
                                 >
                                     <ExternalLink className="w-4 h-4" />
-                                    Launch Original Node
+                                    Open Original Posting
                                 </a>
                             )}
-                            <div className="p-6 glass-card bg-secondary/20 border-dashed text-center">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Safety Lock Active</p>
-                                <p className="text-[9px] font-mono text-muted-foreground/60 leading-tight">All external comms are routed through the CareerPilot AI proxy server for your protection.</p>
+                            <div className="rounded-lg border border-dashed border-border bg-white p-6 text-center">
+                                <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Application Review</p>
+                                <p className="text-[10px] font-medium leading-tight text-muted-foreground/70">Review generated materials before sending anything externally.</p>
                             </div>
                         </div>
 
                         {/* Technical Metadata */}
-                        <div className="glass-card p-8">
+                        <div className="rounded-lg border border-border bg-white p-8 shadow-sm">
                             <h3 className="text-[10px] font-black uppercase tracking-[.3em] text-muted-foreground mb-6">
-                                Node Metadata
+                                Job Metadata
                             </h3>
                             <div className="space-y-5 font-mono text-[10px]">
                                 <div className="flex justify-between border-b border-border pb-2">

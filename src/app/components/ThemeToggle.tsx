@@ -3,7 +3,6 @@
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
-import { motion } from 'framer-motion';
 
 export default function ThemeToggle() {
     const { theme, toggleTheme } = useTheme();

@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
-    Bot,
     Mail,
     Lock,
     Loader2,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import BrandLink from '../components/BrandLink';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function LoginPage() {
@@ -47,7 +47,7 @@ export default function LoginPage() {
                 router.push('/dashboard');
                 router.refresh();
             }
-        } catch (err) {
+        } catch {
             setError('An unexpected error occurred');
         } finally {
             setLoading(false);
@@ -75,37 +75,54 @@ export default function LoginPage() {
     const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
     return (
-        <div className="min-h-screen bg-background bg-mesh-light dark:bg-mesh-dark flex items-center justify-center p-6 selection:bg-primary/20 relative overflow-hidden">
-            {/* Theme Toggle for Auth Pages */}
-            <div className="absolute top-6 right-6 z-50">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6 selection:bg-primary/20">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-white/55" />
+            <div className="absolute right-6 top-6 z-20">
                 <ThemeToggle />
             </div>
 
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-sm"
+                className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/70 bg-white shadow-2xl shadow-[#8794b8]/25 md:grid-cols-[1fr_420px]"
             >
-                {/* Logo Section */}
-                <div className="text-center mb-10">
-                    <div className="inline-flex items-center gap-3 mb-6">
-                        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/20">
-                            <Bot className="w-7 h-7 text-white" />
-                        </div>
-                        <span className="text-3xl font-black tracking-tighter text-foreground">
-                            CareerPilot<span className="text-primary">.ai</span>
-                        </span>
+                <div className="hidden bg-[#f6f8ff] p-10 md:block">
+                    <BrandLink className="mb-16" />
+
+                    <div className="max-w-md">
+                        <p className="mb-5 inline-flex rounded-full border border-border bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#596174]">
+                            Demo-ready job search
+                        </p>
+                        <h1 className="text-5xl font-black leading-tight tracking-tight">Your AI job board is ready.</h1>
+                        <p className="mt-5 text-sm font-medium leading-6 text-[#60677b]">
+                            Enter demo mode or sign in to review matches, tailored resumes, and generated cover letters.
+                        </p>
                     </div>
-                    <h2 className="text-lg font-bold tracking-tight text-foreground">Welcome back</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Enter your credentials to access your agent.</p>
+
+                    <div className="mt-14 grid grid-cols-3 gap-3">
+                        {['4 jobs', '1.7h saved', '4 AI nodes'].map((item) => (
+                            <div key={item} className="rounded-lg border border-border bg-white p-4 text-sm font-black">
+                                {item}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
+                <div className="p-6 md:p-10">
+                    <div className="mb-8 text-center md:hidden">
+                        <BrandLink className="mb-4 justify-center" />
+                    </div>
+
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-black tracking-tight text-foreground">Welcome back</h2>
+                        <p className="mt-2 text-sm font-medium text-[#60677b]">Sign in or enter the standalone demo.</p>
+                    </div>
+
                 {/* Login Container */}
-                <div className="p-8 glass-card relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-primary" />
+                <div className="relative overflow-hidden">
 
                     {error && (
-                        <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400">
+                        <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-red-600">
                             <AlertCircle className="w-4 h-4 flex-shrink-0" />
                             <span className="text-xs font-bold leading-tight">{error}</span>
                         </div>
@@ -124,7 +141,7 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="name@company.com"
                                     required
-                                    className="w-full bg-secondary border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                                    className="w-full rounded-lg border border-border bg-secondary py-3 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
                                 />
                             </div>
                         </div>
@@ -144,7 +161,7 @@ export default function LoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full bg-secondary border border-border rounded-xl pl-10 pr-12 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                                    className="w-full rounded-lg border border-border bg-secondary py-3 pl-10 pr-12 text-sm text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
                                 />
                                 <button
                                     type="button"
@@ -159,13 +176,13 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:grayscale rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all hover:translate-y-[-1px] active:translate-y-0 mt-2"
+                            className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 font-black text-white shadow-lg shadow-primary/15 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:grayscale"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
-                                    Log In to Node
+                                    Sign In
                                     <ArrowRight className="w-4 h-4" />
                                 </>
                             )}
@@ -177,13 +194,13 @@ export default function LoginPage() {
                             <div className="w-full border-t border-border" />
                         </div>
                         <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
-                            <span className="px-4 text-muted-foreground">Encryption Bridge</span>
+                            <span className="bg-white px-4 text-muted-foreground">Or continue with</span>
                         </div>
                     </div>
 
                     <button
                         onClick={handleGoogleLogin}
-                        className="w-full py-2.5 bg-secondary/50 hover:bg-secondary border border-border rounded-xl font-bold text-xs flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                        className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-secondary py-3 text-xs font-black transition-all hover:bg-white active:scale-[0.98]"
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -197,9 +214,9 @@ export default function LoginPage() {
                     {isDemoMode && (
                         <button
                             onClick={handleDemoLogin}
-                            className="w-full mt-3 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl font-bold text-xs text-primary flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-primary bg-primary py-3 text-xs font-black text-white transition-all hover:bg-primary/90 active:scale-[0.98]"
                         >
-                            🚀 Enter Demo Mode
+                            Enter Demo Mode
                         </button>
                     )}
 
@@ -207,15 +224,16 @@ export default function LoginPage() {
                         <p className="text-xs text-muted-foreground font-medium">
                             First time here?{' '}
                             <Link href="/signup" className="text-primary hover:underline font-bold">
-                                Initializing account
+                                Create account
                             </Link>
                         </p>
                     </div>
                 </div>
 
-                <div className="mt-12 flex items-center justify-center gap-4 opacity-30 grayscale">
+                <div className="mt-8 flex items-center justify-center gap-3 text-[#8b92a3]">
                     <Shield className="w-4 h-4" />
-                    <span className="text-[10px] font-black tracking-widest uppercase">AES-256 Bit Encryption Active</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Secure auth enabled</span>
+                </div>
                 </div>
             </motion.div>
         </div>
