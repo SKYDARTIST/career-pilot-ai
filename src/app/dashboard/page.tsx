@@ -54,6 +54,11 @@ const FILTER_TABS = [
   { key: 'Rejected', label: 'Rejected' },
 ];
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  show: { opacity: 1, y: 0 },
+};
+
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -231,7 +236,7 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans text-foreground selection:bg-primary/20">
       {/* Professional Nav */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
+      <nav className="glass-nav sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex h-16 items-center justify-between">
             <BrandLink />
@@ -312,10 +317,16 @@ export default function Dashboard() {
       </nav>
 
       {/* Workspace */}
-      <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700 md:px-6 md:py-10">
+      <main className="mx-auto w-full max-w-[1500px] flex-1 px-5 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700 md:px-8 md:py-10">
 
         {/* Minimal Hero / Stats */}
-        <div className="mb-10 rounded-lg border border-white/70 bg-white p-6 shadow-2xl shadow-[#8794b8]/20 md:p-8">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+          className="motion-panel mb-10 overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-6 shadow-2xl shadow-[#8794b8]/20 backdrop-blur md:p-8 dark:border-border dark:bg-card"
+        >
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#dce1ee] bg-secondary px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#596174]">
@@ -349,22 +360,34 @@ export default function Dashboard() {
               { label: "Submitted", value: stats.applied, icon: CheckCircle2, color: "text-emerald-500" },
               { label: "Interviews", value: stats.interviewing, icon: Clock, color: "text-primary" },
             ].map((stat, i) => (
-              <div key={i} className="rounded-lg border border-border bg-secondary p-5 transition-all hover:border-[#cbd1df]">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 + i * 0.06, duration: 0.35 }}
+                className="rounded-2xl border border-border bg-secondary/90 p-5 transition-all hover:-translate-y-0.5 hover:border-[#cbd1df] hover:bg-white dark:hover:bg-secondary"
+              >
                 <div className="mb-3 flex items-center gap-3">
-                  <div className={`rounded-lg border border-border bg-white p-2 ${stat.color}`}>
+                  <div className={`rounded-xl border border-border bg-white p-2.5 shadow-sm ${stat.color}`}>
                     <stat.icon className="w-4 h-4" />
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-[#596174]">{stat.label}</span>
                 </div>
                 <div className="text-3xl font-black tracking-tight">{stat.value}</div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* View Controls */}
-        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex w-full overflow-x-auto rounded-lg border border-border bg-white p-1 md:w-fit">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          transition={{ duration: 0.38, delay: 0.08 }}
+          className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center"
+        >
+          <div className="flex w-full overflow-x-auto rounded-2xl border border-border bg-white/90 p-1 shadow-sm backdrop-blur md:w-fit dark:bg-card">
             {FILTER_TABS.map((tab) => {
               let count;
               if (tab.key === 'all') {
@@ -378,7 +401,7 @@ export default function Dashboard() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveFilter(tab.key)}
-                  className={`flex shrink-0 items-center gap-2 rounded-md px-4 py-2 text-xs font-black transition-all ${activeFilter === tab.key
+                  className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition-all ${activeFilter === tab.key
                     ? 'bg-primary text-white shadow-sm'
                     : 'text-[#596174] hover:bg-secondary hover:text-foreground'
                     }`}
@@ -397,12 +420,12 @@ export default function Dashboard() {
             <input
               type="text"
               placeholder="Search jobs..."
-              className="w-full rounded-lg border border-border bg-white py-2.5 pl-10 pr-4 text-xs font-bold transition-all placeholder:text-[#9ca3b7] focus:outline-none focus:ring-1 focus:ring-primary md:w-64"
+              className="w-full rounded-2xl border border-border bg-white/90 py-3 pl-10 pr-4 text-xs font-bold shadow-sm transition-all placeholder:text-[#9ca3b7] focus:outline-none focus:ring-1 focus:ring-primary md:w-64 dark:bg-card"
             />
           </div>
 
           <div className="flex flex-col items-end gap-2 text-right">
-            <div className="flex items-center gap-1.5 rounded-lg border border-border bg-white px-2 py-1">
+            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white/90 px-2 py-1 shadow-sm dark:bg-card">
               <span className="text-[10px] font-black uppercase tracking-widest text-[#596174]">Threshold</span>
               <span className="text-xs font-black text-primary font-mono">{minScore}.0</span>
             </div>
@@ -428,9 +451,9 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
           {/* Main Feed */}
           <div className="space-y-5 lg:col-span-8">
             {loading && jobs.length === 0 ? (
@@ -455,11 +478,11 @@ export default function Dashboard() {
                   <motion.div
                     key={job.id}
                     layout
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 16, scale: 0.985 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
+                    transition={{ delay: i * 0.06, duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
                     onClick={() => setSelectedJob(job)}
-                    className="pro-card-hover group relative cursor-pointer overflow-hidden rounded-lg border border-border bg-white p-5 shadow-sm md:p-6"
+                    className="pro-card-hover group relative cursor-pointer overflow-hidden rounded-2xl border border-border bg-white/95 p-5 shadow-sm backdrop-blur md:p-6 dark:bg-card"
                   >
                     {/* Score Indicator */}
                     <div className="absolute left-0 top-0 h-full w-1 bg-[#c9b9ff] transition-colors group-hover:bg-primary" />
@@ -467,7 +490,7 @@ export default function Dashboard() {
                     <div>
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex min-w-0 items-center gap-4">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary transition-colors group-hover:border-[#cbd1df]">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary transition-colors group-hover:border-[#cbd1df]">
                             <Briefcase className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
                           <div>
@@ -490,7 +513,7 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      <div className="group/quote relative mb-5 rounded-lg border border-border bg-secondary px-4 py-3">
+                      <div className="group/quote relative mb-5 rounded-xl border border-border bg-secondary/90 px-4 py-3">
                         <div className="text-xs text-foreground italic leading-relaxed line-clamp-2 pr-6">
                           {job.reasoning ? (
                             `"${job.reasoning}"`
@@ -519,7 +542,7 @@ export default function Dashboard() {
                         />
                         <div className="h-4 w-[1px] bg-border" />
                         <div className="flex items-center gap-1">
-                          <button onClick={() => setSelectedJob(job)} className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary">
+                          <button onClick={() => setSelectedJob(job)} className="p-2 hover:bg-secondary rounded-xl transition-colors text-muted-foreground hover:text-primary">
                             <MessageSquare className="w-4 h-4" />
                           </button>
                           <button
@@ -527,7 +550,7 @@ export default function Dashboard() {
                               event.stopPropagation();
                               window.location.href = `/jobs/${job.id}`;
                             }}
-                            className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary"
+                            className="p-2 hover:bg-secondary rounded-xl transition-colors text-muted-foreground hover:text-primary"
                           >
                             <ArrowRight className="w-4 h-4" />
                           </button>
@@ -543,7 +566,13 @@ export default function Dashboard() {
           {/* Side Panels */}
           <div className="lg:col-span-4 space-y-8">
             {/* Live Console */}
-            <div className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              transition={{ duration: 0.42, delay: 0.16 }}
+              className="motion-panel overflow-hidden rounded-2xl border border-border bg-white/95 shadow-sm backdrop-blur dark:bg-card"
+            >
               <div className="flex items-center justify-between border-b border-border bg-secondary px-5 py-3">
                 <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#596174]">
                   <ShieldCheck className="w-3.5 h-3.5 text-primary" />
@@ -555,7 +584,7 @@ export default function Dashboard() {
                   <div className="w-2 h-2 rounded-full bg-green-400" />
                 </div>
               </div>
-              <div className="h-64 space-y-3 overflow-y-auto bg-white p-5 text-[10px]">
+              <div className="h-64 space-y-3 overflow-y-auto bg-white p-5 text-[10px] dark:bg-card">
                 <div className="font-black uppercase tracking-widest text-[#9ca3b7]">Ready</div>
                 <div className="text-[#596174]">Market search uses your saved profile and filters.</div>
                 <div className="font-bold text-primary">Gemini scoring, culture fit, resume, and cover letter run in parallel.</div>
@@ -576,7 +605,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Quick Actions */}
             <div className="space-y-3">
@@ -587,7 +616,7 @@ export default function Dashboard() {
                 <Settings className="w-4 h-4" />
                 Tune Preferences
               </button>
-              <div className="pro-card border-dashed bg-white p-4 text-center">
+              <div className="pro-card border-dashed bg-white/95 p-4 text-center dark:bg-card">
                 <p className="mb-1 text-[10px] font-black uppercase text-[#596174]">Demo Ready</p>
                 <p className="text-xs font-bold text-[#60677b]">Standalone discovery runs without n8n.</p>
               </div>
@@ -612,12 +641,12 @@ export default function Dashboard() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-              className="absolute right-0 top-0 h-full w-full overflow-y-auto border-l border-border bg-white shadow-2xl md:w-[520px]"
+              className="absolute right-0 top-0 h-full w-full overflow-y-auto border-l border-border bg-white shadow-2xl md:w-[520px] dark:bg-card"
             >
-              <div className="sticky top-0 z-10 border-b border-border bg-white/95 px-6 py-5 backdrop-blur-md">
+              <div className="sticky top-0 z-10 border-b border-border bg-white/95 px-6 py-5 backdrop-blur-md dark:bg-card/95">
                 <button
                   onClick={() => setSelectedJob(null)}
-                    className="absolute right-4 top-4 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  className="absolute right-4 top-4 rounded-xl p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                   aria-label="Close job details"
                 >
                   <X className="w-5 h-5" />
@@ -656,13 +685,17 @@ export default function Dashboard() {
                 )}
               </div>
 
-              <div className="px-6 py-6 space-y-8">
-                <section>
+              <div className="space-y-8 px-6 py-6">
+                <motion.section
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12 }}
+                >
                   <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-primary" />
                     Tailored Resume
                   </h3>
-                  <div className="rounded-lg border border-border bg-secondary p-4 text-sm leading-relaxed">
+                  <div className="rounded-2xl border border-border bg-secondary p-4 text-sm leading-relaxed">
                     {selectedJob.tailoredResume && selectedJob.tailoredResume !== 'N/A' ? (
                       <div className="prose prose-sm dark:prose-invert max-w-none">
                         <ReactMarkdown>{selectedJob.tailoredResume}</ReactMarkdown>
@@ -671,9 +704,13 @@ export default function Dashboard() {
                       <p className="text-muted-foreground">No tailored resume generated for this job.</p>
                     )}
                   </div>
-                </section>
+                </motion.section>
 
-                <section>
+                <motion.section
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 }}
+                >
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                       <MessageSquare className="w-4 h-4 text-primary" />
@@ -688,7 +725,7 @@ export default function Dashboard() {
                       </button>
                     )}
                   </div>
-                  <div className="rounded-lg border border-border bg-secondary p-4 text-sm leading-relaxed">
+                  <div className="rounded-2xl border border-border bg-secondary p-4 text-sm leading-relaxed">
                     {selectedJob.coverLetter && selectedJob.coverLetter !== 'N/A' ? (
                       <div className="prose prose-sm dark:prose-invert max-w-none">
                         <ReactMarkdown>{selectedJob.coverLetter}</ReactMarkdown>
@@ -697,7 +734,7 @@ export default function Dashboard() {
                       <p className="text-muted-foreground">No cover letter generated for this job.</p>
                     )}
                   </div>
-                </section>
+                </motion.section>
               </div>
             </motion.aside>
           </div>

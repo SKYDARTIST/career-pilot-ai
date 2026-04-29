@@ -34,15 +34,20 @@ interface StatCardProps {
 }
 
 const StatCard = ({ title, value, icon: Icon, color }: StatCardProps) => (
-    <div className="rounded-lg border border-border bg-white p-6 shadow-sm transition-all hover:border-[#cbd1df]">
+    <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.36 }}
+        className="rounded-2xl border border-border bg-white/95 p-6 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-[#cbd1df] dark:bg-card"
+    >
         <div className="mb-4 flex items-center gap-3">
-            <div className={`rounded-lg border border-border bg-secondary p-2 ${color}`}>
+            <div className={`rounded-xl border border-border bg-secondary p-2.5 ${color}`}>
                 <Icon className="w-5 h-5" />
             </div>
             <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{title}</span>
         </div>
         <div className="text-4xl font-black tracking-tight">{value}</div>
-    </div>
+    </motion.div>
 );
 
 export default function StatsPage() {
@@ -101,7 +106,7 @@ export default function StatsPage() {
     return (
         <div className="min-h-screen bg-background font-sans text-foreground">
             {/* Navigation */}
-            <nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
+            <nav className="glass-nav sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex h-16 items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -123,8 +128,13 @@ export default function StatsPage() {
                 </div>
             </nav>
 
-            <main className="max-w-7xl mx-auto px-6 py-12">
-                <div className="mb-10 rounded-lg border border-white/70 bg-white p-8 shadow-2xl shadow-[#8794b8]/20">
+            <main className="mx-auto max-w-[1500px] px-6 py-12">
+                <motion.div
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                    className="motion-panel mb-10 rounded-2xl border border-white/70 bg-white/90 p-8 shadow-2xl shadow-[#8794b8]/20 backdrop-blur dark:border-border dark:bg-card"
+                >
                     <p className="mb-4 inline-flex rounded-full border border-border bg-secondary px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#596174]">
                         Insights
                     </p>
@@ -132,7 +142,7 @@ export default function StatsPage() {
                     <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-[#60677b]">
                         Track match quality, pipeline movement, and time saved from analyzed jobs.
                     </p>
-                </div>
+                </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                     <StatCard
@@ -163,7 +173,12 @@ export default function StatsPage() {
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     {/* Status Distribution */}
-                    <div className="rounded-lg border border-border bg-white p-8 shadow-sm">
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.38, delay: 0.12 }}
+                        className="rounded-2xl border border-border bg-white/95 p-8 shadow-sm backdrop-blur dark:bg-card"
+                    >
                         <div className="flex items-center gap-3 mb-8">
                             <BarChart3 className="w-5 h-5 text-primary" />
                             <h2 className="text-xl font-bold tracking-tight">Pipeline Velocity</h2>
@@ -195,10 +210,15 @@ export default function StatsPage() {
                                 );
                             })}
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Top Companies */}
-                    <div className="rounded-lg border border-border bg-white p-8 shadow-sm">
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.38, delay: 0.18 }}
+                        className="rounded-2xl border border-border bg-white/95 p-8 shadow-sm backdrop-blur dark:bg-card"
+                    >
                         <div className="flex items-center gap-3 mb-8">
                             <TrendingUp className="w-5 h-5 text-primary" />
                             <h2 className="text-xl font-bold tracking-tight">Sector Penetration</h2>
@@ -206,9 +226,15 @@ export default function StatsPage() {
                         <div className="space-y-4">
                             {stats.topCompanies.length > 0 ? (
                                 stats.topCompanies.map(([company, count], i) => (
-                                    <div key={company} className="group flex items-center justify-between rounded-lg border border-border bg-secondary p-4 transition-all hover:border-[#cbd1df]">
+                                    <motion.div
+                                        key={company}
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.24 + i * 0.05 }}
+                                        className="group flex items-center justify-between rounded-2xl border border-border bg-secondary p-4 transition-all hover:border-[#cbd1df]"
+                                    >
                                         <div className="flex items-center gap-4">
-                                            <div className="w-8 h-8 bg-card rounded-lg flex items-center justify-center font-bold text-xs border border-border">
+                                            <div className="w-8 h-8 bg-card rounded-xl flex items-center justify-center font-bold text-xs border border-border">
                                                 {i + 1}
                                             </div>
                                             <span className="font-bold text-foreground">{company}</span>
@@ -217,7 +243,7 @@ export default function StatsPage() {
                                             <span className="text-xs font-bold text-muted-foreground">{count} signals</span>
                                             <ArrowLeft className="w-4 h-4 text-primary rotate-180 opacity-0 group-hover:opacity-100 transition-all" />
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))
                             ) : (
                                 <div className="py-12 text-center text-muted-foreground text-sm italic">
@@ -225,11 +251,16 @@ export default function StatsPage() {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
                 {/* Impact Message */}
-                <div className="group relative mt-10 overflow-hidden rounded-lg border border-border bg-white p-8 text-center shadow-sm">
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.38, delay: 0.22 }}
+                    className="group relative mt-10 overflow-hidden rounded-2xl border border-border bg-white/95 p-8 text-center shadow-sm backdrop-blur dark:bg-card"
+                >
                     <div className="relative z-10">
                         <Sparkles className="w-8 h-8 text-primary mx-auto mb-4" />
                         <h3 className="mb-2 text-2xl font-black tracking-tight">Your search is getting lighter</h3>
@@ -238,7 +269,7 @@ export default function StatsPage() {
                             Your match accuracy is trending <span className="text-emerald-500 font-bold">upwards</span>.
                         </p>
                     </div>
-                </div>
+                </motion.div>
             </main>
         </div>
     );

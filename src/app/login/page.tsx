@@ -76,17 +76,20 @@ export default function LoginPage() {
 
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6 selection:bg-primary/20">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-white/55" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-white/55 dark:bg-white/5" />
+            <div className="pointer-events-none absolute -left-24 top-16 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
+            <div className="pointer-events-none absolute -right-24 bottom-10 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
             <div className="absolute right-6 top-6 z-20">
                 <ThemeToggle />
             </div>
 
             <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 18, scale: 0.985 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-white/70 bg-white shadow-2xl shadow-[#8794b8]/25 md:grid-cols-[1fr_420px]"
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                className="motion-panel relative grid w-full max-w-5xl overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-2xl shadow-[#8794b8]/25 backdrop-blur md:grid-cols-[1fr_420px] dark:border-border dark:bg-card"
             >
-                <div className="hidden bg-[#f6f8ff] p-10 md:block">
+                <div className="hidden bg-[#f6f8ff] p-10 md:block dark:bg-secondary">
                     <BrandLink className="mb-16" />
 
                     <div className="max-w-md">
@@ -101,9 +104,15 @@ export default function LoginPage() {
 
                     <div className="mt-14 grid grid-cols-3 gap-3">
                         {['4 jobs', '1.7h saved', '4 AI nodes'].map((item) => (
-                            <div key={item} className="rounded-lg border border-border bg-white p-4 text-sm font-black">
+                            <motion.div
+                                key={item}
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.15 }}
+                                className="rounded-2xl border border-border bg-white/90 p-4 text-sm font-black shadow-sm dark:bg-card"
+                            >
                                 {item}
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
@@ -141,7 +150,7 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="name@company.com"
                                     required
-                                    className="w-full rounded-lg border border-border bg-secondary py-3 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                    className="w-full rounded-2xl border border-border bg-secondary py-3 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
                                 />
                             </div>
                         </div>
@@ -161,7 +170,7 @@ export default function LoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full rounded-lg border border-border bg-secondary py-3 pl-10 pr-12 text-sm text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                    className="w-full rounded-2xl border border-border bg-secondary py-3 pl-10 pr-12 text-sm text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
                                 />
                                 <button
                                     type="button"
@@ -200,7 +209,7 @@ export default function LoginPage() {
 
                     <button
                         onClick={handleGoogleLogin}
-                        className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-secondary py-3 text-xs font-black transition-all hover:bg-white active:scale-[0.98]"
+                        className="flex w-full items-center justify-center gap-3 rounded-2xl border border-border bg-secondary py-3 text-xs font-black transition-all hover:bg-white active:scale-[0.98] dark:hover:bg-card"
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
