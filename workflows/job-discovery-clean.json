@@ -111,7 +111,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
@@ -129,7 +129,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
@@ -179,7 +179,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
@@ -197,7 +197,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyBYm-AjTDU5YtwveNOe9wBfCY8M1-FVOc4",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={{$env.GEMINI_API_KEY}}",
                 "authentication": "none",
                 "sendBody": true,
                 "specifyBody": "json",
