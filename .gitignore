@@ -29,8 +29,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
+dev_*.log
+n8n_*.log
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 !.env.local.example
 
@@ -41,36 +44,42 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# ==============================================================================
-# Development & Test Files (DO NOT COMMIT)
-# ==============================================================================
+# Runtime data — local only
+data/applications.json
+data/master-resume.md
+data/preferences.json
+_FOR_IMPORT/
 
-# Log files
-*.log
-dev_*.log
-n8n_*.log
-
-# Test scripts
+# Local debug/test scripts
 test_*.js
 test_*.ts
 check_*.js
 check_*.py
+check_jobs.py
 inspect_*.js
 cleanup_*.js
 enhanced_*.js
 get_user.js
 clear-my-jobs.js
-
-# Temporary files
-SUPER_TEST.txt
-test_write.txt
+test_cmd.sh
+*.sh
 *.tmp
 *.temp
+SUPER_TEST.txt
+test_write.txt
 
-# Data exports (may contain sensitive info)
-_FOR_IMPORT/
+# AI session artifacts
+ENHANCEMENTS.md
+HACKATHON_SUBMISSION.md
+IMPROVED_PROMPTS.md
+N8N_SETUP_GUIDE.md
 
 # Workflow files with hardcoded keys (use template instead)
 # Keep workflow exports local. Commit the template with environment placeholders.
 workflows/job-discovery.json
 workflows/job-discovery-clean.json
+
+# AI tool artifacts
+.claude/
+graphify-out/
+.codex-pet-runs/

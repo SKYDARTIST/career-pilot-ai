@@ -1,158 +1,246 @@
-# CareerPilot AI - AI Job Search Copilot
+# CareerPilot AI
 
-> 🏆 **Built for the Gemini 3 Global Hackathon**
+CareerPilot AI is a review-gated job search copilot. It searches for relevant roles, scores fit with Gemini, prepares tailored application drafts, and presents results in a Next.js dashboard backed by Supabase.
 
-An AI-assisted job search dashboard that discovers roles, scores fit, and drafts application material using **Gemini** and **n8n**. The project is intentionally review-gated: it demonstrates the workflow without submitting applications or spending API credits unless you configure external services yourself.
+Built for the Gemini 3 Global Hackathon.
 
-**[Live Demo →](https://career-pilot-ai-psi.vercel.app)**
+[Live Demo](https://career-pilot-ai-psi.vercel.app)
 
-![CareerPilot AI Banner](./public/banner.png)
+## Product Preview
 
-## ✨ Features
+### Landing Page
 
-- **🔍 Job Discovery Workflow**: Scheduled n8n workflow that can search roles from configured providers
-- **🧠 Multi-Strategy Analysis**: Gemini can evaluate each job using reasoning prompts
-- **📊 Smart Scoring**: AI-powered fit scoring (1-10) based on skills, experience, and culture
-- **📄 Draft Generation**: Creates resume and cover-letter drafts for human review
-- **📱 Beautiful Dashboard**: Track and manage all your job opportunities in one place
-- **🔐 Demo-Safe Defaults**: Demo mode avoids external API calls and real application submission
+![CareerPilot landing page](./public/readme/landing-light.png)
+
+### Dashboard
+
+![CareerPilot dashboard dark mode](./public/readme/dashboard-dark.png)
+
+### Analytics
+
+![CareerPilot analytics](./public/readme/analytics-light.png)
+
+### Settings
+
+![CareerPilot settings dark mode](./public/readme/settings-dark.png)
+
+### Login and Demo Mode
+
+![CareerPilot login dark mode](./public/readme/login-dark.png)
+
+## Features
+
+- Review-gated job discovery through `POST /api/discover`.
+- SerpAPI-powered job search based on saved Supabase profile and preferences.
+- Four Gemini nodes per job: scorer, culture analyzer, resume tailor, and cover letter generator.
+- Parallel Gemini execution with `Promise.all()` to keep demo runs fast on Vercel.
+- Job-fit scoring from 1 to 10 with structured reasoning, matching skills, missing skills, and culture tags.
+- Dashboard Run Discovery action for on-demand discovery without requiring n8n.
+- Job detail drawer with tailored resume and cover letter rendered through ReactMarkdown.
+- Copy Cover Letter action for generated cover letter text.
+- Demo mode for live previews using `NEXT_PUBLIC_DEMO_MODE=true`.
+- Dashboard analytics for Pipeline Velocity and Sector Penetration.
+- Light and dark mode across the landing page, dashboard, login, settings, stats, and job detail views.
 
 ## Demo Boundaries
 
-CareerPilot is a portfolio project, not a production auto-apply bot. The live/demo experience should be used to understand the product flow:
+CareerPilot is a portfolio project, not a production auto-apply bot.
 
 - No job application is submitted automatically.
-- Generated resumes and cover letters are drafts.
-- Gemini, SerpAPI, and n8n calls happen only when you configure your own keys and run the workflow.
+- Generated resumes and cover letters are drafts for human review.
+- Gemini, SerpAPI, and n8n calls happen only when you configure your own keys and run discovery.
 - API usage can cost money. Keep demo mode enabled when you only want to showcase the UI.
 
-## 🚀 Quick Start
+## Architecture
+
+```text
+User Profile
+    |
+    v
+Next.js API Route: POST /api/discover
+    |
+    v
+SerpAPI Job Search
+    |
+    v
+Gemini 2.5 Flash Lite
+    |-- Job scorer
+    |-- Culture analyzer
+    |-- Resume tailor
+    |-- Cover letter generator
+    |
+    v
+Supabase Database
+    |
+    v
+Next.js Dashboard
+```
+
+The n8n workflows in `workflows/` remain available as an optional production automation path for scheduled discovery. The standalone Next.js route is designed so the demo can run on Vercel without relying on a shared n8n instance.
+
+## Standalone Discovery API
+
+CareerPilot includes a self-contained discovery endpoint:
+
+```http
+POST /api/discover
+```
+
+The route:
+
+1. Loads the authenticated user's Supabase profile and preferences.
+2. Searches for jobs using SerpAPI.
+3. Sends each job through four Gemini nodes:
+   - Job scorer
+   - Culture analyzer
+   - Resume tailor
+   - Cover letter generator
+4. Saves results to Supabase using the same jobs schema as the n8n workflow.
+5. Returns a summary with discovered, saved, created, updated, and failed counts.
+
+The default model is `gemini-2.5-flash-lite`, selected for cost-efficient demo runs. With the current cap of five jobs per run, one discovery request can make up to 20 Gemini calls because each job runs four AI nodes in parallel.
+
+## Tech Stack
+
+- Frontend: Next.js 16, React 19, TypeScript, Tailwind CSS
+- Backend: Next.js API Routes, Supabase PostgreSQL
+- Authentication and data: Supabase Auth, Supabase Row Level Security
+- AI: Gemini 2.5 Flash Lite by default
+- Job search: SerpAPI
+- Optional automation: n8n workflows
+- Deployment: Vercel
+
+## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+
-- n8n (for workflow automation)
+- Node.js 18 or newer
 - Supabase account
-- Gemini API key (optional unless running AI workflow)
-- SerpAPI key or Serper.dev key (optional unless running job search workflow)
+- Gemini API key, optional unless running discovery
+- SerpAPI key, optional unless running discovery
+- n8n, optional, for scheduled production automation
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository.
+
    ```bash
    git clone https://github.com/SKYDARTIST/career-pilot-ai
    cd career-pilot-ai
    ```
 
-2. **Install dependencies**
+2. Install dependencies.
+
    ```bash
    npm install
    ```
 
-3. **Configure environment variables**
+3. Configure environment variables.
+
    ```bash
    cp .env.local.example .env.local
-   # Keep NEXT_PUBLIC_DEMO_MODE=true for portfolio/demo use
-   # Add API keys only when you intentionally run the external workflow
    ```
 
-4. **Start the development server**
+   Required for standalone discovery:
+
+   ```bash
+   GEMINI_API_KEY=your-gemini-key
+   GEMINI_MODEL=gemini-2.5-flash-lite
+   SERPAPI_KEY=your-serpapi-key
+   ```
+
+   Required for demo login:
+
+   ```bash
+   NEXT_PUBLIC_DEMO_MODE=true
+   ```
+
+4. Start the development server.
+
    ```bash
    npm run dev
    ```
 
-5. **Import the n8n workflow**
-   - Open n8n at http://localhost:5678
-   - Import `workflows/job-discovery.template.json`
-   - Configure n8n environment variables (see below)
+5. Open the app.
 
-### n8n Environment Variables
+   ```text
+   http://localhost:3000
+   ```
 
-Set these in n8n Settings > Variables:
+6. Run discovery from the dashboard.
+
+   - Open `/login`.
+   - Click Enter Demo Mode if demo mode is enabled.
+   - Open `/dashboard`.
+   - Click Run Discovery.
+
+## Environment Variables
+
+Core application variables are defined in `.env.local.example`.
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Public Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key for browser access |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side Supabase service role key |
+| `CAREER_PILOT_API_KEY` | Server-to-server API key for workflow integrations |
+| `GEMINI_API_KEY` | Gemini API key |
+| `GEMINI_MODEL` | Gemini model, defaults to `gemini-2.5-flash-lite` |
+| `SERPAPI_KEY` | SerpAPI key for Google Jobs search |
+| `NEXT_PUBLIC_DEMO_MODE` | Enables demo login when set to `true` |
+
+## Optional n8n Workflow
+
+The repository still includes the n8n workflow templates for scheduled discovery.
+
+1. Open n8n at `http://localhost:5678`.
+2. Import `workflows/job-discovery.template.json`.
+3. Configure n8n variables.
 
 | Variable | Description |
-|----------|-------------|
-| `GEMINI_API_KEY` | Your Gemini API key from [AI Studio](https://aistudio.google.com/apikey) |
-| `SERPAPI_KEY` | Your SerpAPI key from [serpapi.com](https://serpapi.com/) |
-| `CAREER_PILOT_API_KEY` | Same as in your `.env.local` |
-| `CAREER_PILOT_API_URL` | `http://localhost:3000` (or your deployed URL) |
-| `CAREER_PILOT_USER_ID` | Your Supabase user ID |
+| --- | --- |
+| `GEMINI_API_KEY` | Gemini API key from AI Studio |
+| `SERPAPI_KEY` | SerpAPI key |
+| `CAREER_PILOT_API_KEY` | Same as in `.env.local` |
+| `CAREER_PILOT_API_URL` | Local or deployed CareerPilot URL |
+| `CAREER_PILOT_USER_ID` | Supabase user ID |
 
-## 🏗️ Architecture
+## Project Structure
 
-```
-┌─────────────────┐
-│  User Profile   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│  n8n Workflow   │────▶│ Job Search API  │
-│  (Cron: 6hrs)   │     │  (SerpAPI)      │
-└────────┬────────┘     └─────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────┐
-│           Gemini                         │
-│  ┌───────────┐ ┌───────────────────┐   │
-│  │  Scorer   │ │ Culture Analyzer  │   │
-│  └───────────┘ └───────────────────┘   │
-│  ┌───────────┐ ┌───────────────────┐   │
-│  │  Resume   │ │  Cover Letter     │   │
-│  │  Tailor   │ │  Generator        │   │
-│  └───────────┘ └───────────────────┘   │
-└────────┬────────────────────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Supabase DB   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Next.js Dashboard│
-└─────────────────┘
-```
-
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL), Next.js API Routes
-- **Automation**: n8n (workflow engine)
-- **AI**: Gemini workflow nodes for scoring and draft generation
-- **APIs**: SerpAPI (job data), Google AI Studio
-
-## 📁 Project Structure
-
-```
+```text
 career-pilot-ai/
 ├── src/
 │   ├── app/
-│   │   ├── api/           # API routes
-│   │   ├── dashboard/     # Job dashboard
-│   │   ├── settings/      # User preferences
-│   │   ├── login/         # Authentication
-│   │   └── components/    # UI components
-│   ├── hooks/             # React hooks
-│   └── lib/               # Supabase clients
+│   │   ├── api/
+│   │   │   └── discover/
+│   │   ├── dashboard/
+│   │   ├── jobs/
+│   │   ├── login/
+│   │   ├── settings/
+│   │   └── components/
+│   ├── hooks/
+│   └── lib/
 ├── workflows/
-│   ├── job-discovery.template.json  # n8n workflow template with env placeholders
-│   └── job-discovery.json           # Local export, ignored for future commits
-├── prompts/               # AI system prompts
-├── data/                  # Example data files
-└── docs/                  # Documentation
+├── prompts/
+├── data/
+├── public/
+│   └── readme/
+└── README.md
 ```
 
-## 🔐 Security
+## Security
 
-- Row Level Security (RLS) enabled on all tables
-- API key authentication for n8n integration
-- User isolation - each user only sees their own data
-- Workflow templates use environment placeholders instead of committed keys
-- Debug endpoints and API-key logging are not part of the production surface
-- Human review is required before using generated application material
+- Supabase Row Level Security is expected on all user data tables.
+- API key authentication is supported for server-to-server workflow calls.
+- User-scoped queries isolate each user's jobs and preferences.
+- Distribution files do not include secrets.
+- `.env.local` is gitignored.
+- Workflow templates use environment placeholders instead of committed keys.
+- Debug endpoints and API-key logging are not part of the production surface.
+- Human review is required before using generated application material.
+- Demo mode is intended for public previews and should not be used as a security boundary.
 
-## 📖 Documentation
+## Documentation
 
 - [Production Setup Guide](./PRODUCTION_SETUP_GUIDE.md)
 - [Security Notes](./SECURITY.md)
@@ -161,32 +249,11 @@ career-pilot-ai/
 - [Terms of Service](./TERMS_OF_SERVICE.md)
 - [Privacy Policy](./PRIVACY_POLICY.md)
 
-## 🎯 Gemini Integration
+## License
 
-This project showcases Gemini's capabilities across 4 review-gated workflow nodes:
+This project is licensed under the MIT License. See [LICENSE](./LICENSE).
 
-1. **Job Scorer**: Advanced reasoning for job-fit analysis
-2. **Culture Analyzer**: Multimodal vision + text for company culture
-3. **Resume Tailor**: Personalized resume draft generation
-4. **Cover Letter Generator**: Custom cover letter draft writing
-
-## 🚧 Roadmap
-
-- [ ] Approval checklist: review every draft before applying
-- [ ] Interview Prep: AI-powered mock interviews
-- [ ] Salary Negotiation: AI coach for offers
-- [ ] Network Analysis: LinkedIn graph for warm intros
-- [ ] Mobile App: iOS/Android companion
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
-
-## 📞 Contact
+## Contact
 
 - GitHub: [@SKYDARTIST](https://github.com/SKYDARTIST)
 - X: [@AakashBuild](https://x.com/AakashBuild)
-
----
-
-**Built with Gemini for the Gemini 3 Global Hackathon**
