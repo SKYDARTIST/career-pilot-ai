@@ -107,14 +107,14 @@ export default function LandingPage() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-[1.1]">
-              Your Autonomous
+              Your AI
               <br />
-              <span className="text-primary">Job Application Robot</span>
+              <span className="text-primary">Job Search Copilot</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Stop applying manually. CareerPilot uses Gemini AI to scan job boards 24/7,
-              score opportunities against your profile, and generate tailored application materials automatically.
+              CareerPilot uses Gemini AI to find roles, score opportunities against your profile,
+              and prepare application drafts for human review.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -122,7 +122,7 @@ export default function LandingPage() {
                 href="/signup"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-2xl text-lg font-bold hover:bg-primary/90 transition-all shadow-2xl shadow-primary/30 hover:translate-y-[-2px]"
               >
-                Start Free Trial
+                Open Demo
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <button className="inline-flex items-center justify-center gap-2 px-8 py-4 glass-card text-foreground rounded-2xl text-lg font-bold hover:border-primary/50 transition-all">
@@ -157,7 +157,7 @@ export default function LandingPage() {
               AI That Thinks Like a Recruiter
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              CareerPilot doesn't just search keywords. It understands context, culture fit, and career trajectory.
+              CareerPilot goes beyond keyword search. It understands context, culture fit, and career trajectory.
             </p>
           </div>
 

@@ -71,4 +71,6 @@ test_write.txt
 _FOR_IMPORT/
 
 # Workflow files with hardcoded keys (use template instead)
-# Note: Keep job-discovery.json for local dev, but use template for distribution
+# Keep workflow exports local. Commit the template with environment placeholders.
+workflows/job-discovery.json
+workflows/job-discovery-clean.json

@@ -5,7 +5,7 @@ This guide explains how to set up the CareerPilot AI workflow in n8n.
 ## Prerequisites
 
 1. **n8n installed** - Either self-hosted or n8n Cloud
-2. **API Keys** ready:
+2. **API Keys** ready if you intend to run the external workflow:
    - Gemini API Key ([get here](https://aistudio.google.com/apikey))
    - SerpAPI Key ([get here](https://serpapi.com/)) OR Serper.dev key
    - CareerPilot API Key (from your `.env.local`)
@@ -17,9 +17,9 @@ In n8n, go to **Settings > Variables** and add:
 
 | Variable Name | Value | Description |
 |--------------|-------|-------------|
-| `GEMINI_API_KEY` | `AIzaSy...` | Your Gemini API key |
-| `SERPAPI_KEY` | `615132...` | Your SerpAPI key |
-| `CAREER_PILOT_API_KEY` | `your-secret-key` | Must match .env.local |
+| `GEMINI_API_KEY` | `your-gemini-key` | Your Gemini API key |
+| `SERPAPI_KEY` | `your-serpapi-key` | Your SerpAPI key |
+| `CAREER_PILOT_API_KEY` | `generate-a-long-random-secret` | Must match .env.local |
 | `CAREER_PILOT_API_URL` | `http://localhost:3000` | Your app URL |
 | `CAREER_PILOT_USER_ID` | `5629ed4f-...` | Your Supabase user ID |
 
@@ -43,6 +43,8 @@ SELECT id FROM auth.users WHERE email = 'your-email@example.com';
 3. Select **"Import from File"**
 4. Choose: `workflows/job-discovery.template.json`
 5. Click **Save**
+
+Do not import or commit workflow exports that contain real API keys. The template is the source of truth for this repo.
 
 ## Step 3: Verify the Workflow
 
@@ -108,6 +110,11 @@ user_id: {{$env.CAREER_PILOT_USER_ID}}
 - Check for rate limits (1500 requests/day free)
 - Look at n8n error logs for details
 
+### Unexpected API Usage
+- Disable the Cron Trigger while testing manually
+- Keep `NEXT_PUBLIC_DEMO_MODE=true` for portfolio demos
+- Check Gemini and SerpAPI dashboards for quota usage after each workflow test
+
 ## Workflow Schedule
 
 By default, the workflow runs every **6 hours**:
@@ -151,4 +158,4 @@ For production:
 - Never share your workflow file with real API keys
 - Always use environment variables
 - The template file (`job-discovery.template.json`) uses `{{$env.VAR}}` placeholders
-- Your local `job-discovery.json` may have real keys - don't commit it!
+- Local workflow exports may contain secrets or personal profile data - don't commit them

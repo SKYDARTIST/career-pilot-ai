@@ -190,7 +190,7 @@ export default function SettingsPage() {
                 <div className="border-b border-border pb-8">
                     <h2 className="text-3xl font-black tracking-tighter">Preferences</h2>
                     <p className="text-sm text-muted-foreground mt-2 max-w-lg">
-                        Fine-tune your autonomous agent's decision-making parameters and alert thresholds.
+                        Tune review criteria, alert thresholds, and workflow inputs.
                     </p>
                 </div>
 
@@ -265,7 +265,7 @@ export default function SettingsPage() {
                                             placeholder="Paste your existing resume points, projects, and career history here. The AI will use this as the ONLY source of truth for tailoring."
                                             className="w-full bg-secondary border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all font-medium min-h-[160px] resize-none"
                                         />
-                                        <p className="text-[9px] text-muted-foreground ml-1">Provide your real experience to prevent the AI from "inventing" fake projects.</p>
+                                        <p className="text-[9px] text-muted-foreground ml-1">Provide your real experience to prevent the AI from &quot;inventing&quot; fake projects.</p>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Core Skills (One per line)</label>

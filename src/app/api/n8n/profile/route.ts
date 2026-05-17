@@ -1,12 +1,12 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-const API_KEY = process.env.CAREER_PILOT_API_KEY || 'career-pilot-secret-key';
+const API_KEY = process.env.CAREER_PILOT_API_KEY;
 
 export async function GET(request: Request) {
     try {
         const apiKey = request.headers.get('X-API-Key');
-        const isN8n = apiKey === API_KEY;
+        const isN8n = Boolean(API_KEY) && apiKey === API_KEY;
 
         // Use Admin Client for n8n to bypass RLS since n8n has no browser session
         const supabase = isN8n ? await createAdminClient() : await createClient();

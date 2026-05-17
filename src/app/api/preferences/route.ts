@@ -12,11 +12,7 @@ if (!isDemoMode && !API_KEY) {
 // Helper to check if request is from n8n with API key
 function isApiKeyValid(request: Request): boolean {
     const apiKey = request.headers.get('X-API-Key');
-    console.log('--- Auth Debug ---');
-    console.log('Incoming X-API-Key:', apiKey);
-    console.log('Expected API_KEY:', API_KEY);
-    console.log('------------------');
-    return apiKey === API_KEY;
+    return Boolean(API_KEY) && apiKey === API_KEY;
 }
 
 // Demo preferences
@@ -174,4 +170,3 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
-

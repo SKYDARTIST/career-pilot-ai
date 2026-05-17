@@ -84,7 +84,6 @@ export default function Dashboard() {
       const prefsData = await prefsRes.json();
 
       setJobs(Array.isArray(jobsData) ? jobsData : []);
-      setJobs(Array.isArray(jobsData) ? jobsData : []);
       if (prefsData && prefsData.filters && typeof prefsData.filters.minScore === 'number') {
         setMinScore(prefsData.filters.minScore);
       }
@@ -246,7 +245,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-secondary rounded-full border border-border mr-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Autonomous Agent Online</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Review Assistant Online</span>
               </div>
 
               <button className="p-2 rounded-md hover:bg-secondary transition-colors relative">
@@ -618,7 +617,7 @@ export default function Dashboard() {
                       AI Analysis
                     </h4>
                     <div className="bg-secondary/50 border border-border rounded-xl p-4 text-sm text-muted-foreground italic">
-                      "{selectedJob.reasoning}"
+                      &quot;{selectedJob.reasoning}&quot;
                     </div>
                   </div>
                 )}

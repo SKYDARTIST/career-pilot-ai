@@ -1,8 +1,8 @@
-# CareerPilot AI - The Autonomous Job Application Agent
+# CareerPilot AI - AI Job Search Copilot
 
 > 🏆 **Built for the Gemini 3 Global Hackathon**
 
-An AI-powered autonomous agent that automates the end-to-end job application process using **Gemini** and **n8n**.
+An AI-assisted job search dashboard that discovers roles, scores fit, and drafts application material using **Gemini** and **n8n**. The project is intentionally review-gated: it demonstrates the workflow without submitting applications or spending API credits unless you configure external services yourself.
 
 **[Live Demo →](https://career-pilot-ai-psi.vercel.app)**
 
@@ -10,11 +10,21 @@ An AI-powered autonomous agent that automates the end-to-end job application pro
 
 ## ✨ Features
 
-- **🔍 Intelligent Discovery**: Autonomous job scraping based on your career preferences
-- **🧠 Multi-Strategy Analysis**: Gemini evaluates each job using advanced reasoning chains
+- **🔍 Job Discovery Workflow**: Scheduled n8n workflow that can search roles from configured providers
+- **🧠 Multi-Strategy Analysis**: Gemini can evaluate each job using reasoning prompts
 - **📊 Smart Scoring**: AI-powered fit scoring (1-10) based on skills, experience, and culture
-- **📄 Personalized Tailoring**: Auto-generates customized resumes and cover letters
+- **📄 Draft Generation**: Creates resume and cover-letter drafts for human review
 - **📱 Beautiful Dashboard**: Track and manage all your job opportunities in one place
+- **🔐 Demo-Safe Defaults**: Demo mode avoids external API calls and real application submission
+
+## Demo Boundaries
+
+CareerPilot is a portfolio project, not a production auto-apply bot. The live/demo experience should be used to understand the product flow:
+
+- No job application is submitted automatically.
+- Generated resumes and cover letters are drafts.
+- Gemini, SerpAPI, and n8n calls happen only when you configure your own keys and run the workflow.
+- API usage can cost money. Keep demo mode enabled when you only want to showcase the UI.
 
 ## 🚀 Quick Start
 
@@ -23,8 +33,8 @@ An AI-powered autonomous agent that automates the end-to-end job application pro
 - Node.js 18+
 - n8n (for workflow automation)
 - Supabase account
-- Gemini API key
-- SerpAPI key (or Serper.dev)
+- Gemini API key (optional unless running AI workflow)
+- SerpAPI key or Serper.dev key (optional unless running job search workflow)
 
 ### Installation
 
@@ -42,7 +52,8 @@ An AI-powered autonomous agent that automates the end-to-end job application pro
 3. **Configure environment variables**
    ```bash
    cp .env.local.example .env.local
-   # Edit .env.local with your API keys
+   # Keep NEXT_PUBLIC_DEMO_MODE=true for portfolio/demo use
+   # Add API keys only when you intentionally run the external workflow
    ```
 
 4. **Start the development server**
@@ -82,7 +93,7 @@ Set these in n8n Settings > Variables:
          │
          ▼
 ┌─────────────────────────────────────────┐
-│           Gemini 2.0 Flash              │
+│           Gemini                         │
 │  ┌───────────┐ ┌───────────────────┐   │
 │  │  Scorer   │ │ Culture Analyzer  │   │
 │  └───────────┘ └───────────────────┘   │
@@ -108,7 +119,7 @@ Set these in n8n Settings > Variables:
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL), Next.js API Routes
 - **Automation**: n8n (workflow engine)
-- **AI**: Gemini 2.0 Flash (4 specialized nodes)
+- **AI**: Gemini workflow nodes for scoring and draft generation
 - **APIs**: SerpAPI (job data), Google AI Studio
 
 ## 📁 Project Structure
@@ -125,8 +136,8 @@ career-pilot-ai/
 │   ├── hooks/             # React hooks
 │   └── lib/               # Supabase clients
 ├── workflows/
-│   ├── job-discovery.template.json  # n8n workflow (use this!)
-│   └── job-discovery.json           # Local development
+│   ├── job-discovery.template.json  # n8n workflow template with env placeholders
+│   └── job-discovery.json           # Local export, ignored for future commits
 ├── prompts/               # AI system prompts
 ├── data/                  # Example data files
 └── docs/                  # Documentation
@@ -137,11 +148,14 @@ career-pilot-ai/
 - Row Level Security (RLS) enabled on all tables
 - API key authentication for n8n integration
 - User isolation - each user only sees their own data
-- No hardcoded credentials in distribution files
+- Workflow templates use environment placeholders instead of committed keys
+- Debug endpoints and API-key logging are not part of the production surface
+- Human review is required before using generated application material
 
 ## 📖 Documentation
 
 - [Production Setup Guide](./PRODUCTION_SETUP_GUIDE.md)
+- [Security Notes](./SECURITY.md)
 - [Hackathon Submission](./HACKATHON_SUBMISSION.md)
 - [Enhancements Guide](./ENHANCEMENTS.md)
 - [Terms of Service](./TERMS_OF_SERVICE.md)
@@ -149,16 +163,16 @@ career-pilot-ai/
 
 ## 🎯 Gemini Integration
 
-This project showcases Gemini's capabilities across 4 critical nodes:
+This project showcases Gemini's capabilities across 4 review-gated workflow nodes:
 
 1. **Job Scorer**: Advanced reasoning for job-fit analysis
 2. **Culture Analyzer**: Multimodal vision + text for company culture
-3. **Resume Tailor**: Personalized resume generation
-4. **Cover Letter Generator**: Custom cover letter writing
+3. **Resume Tailor**: Personalized resume draft generation
+4. **Cover Letter Generator**: Custom cover letter draft writing
 
 ## 🚧 Roadmap
 
-- [ ] Auto-Apply: One-click application submission
+- [ ] Approval checklist: review every draft before applying
 - [ ] Interview Prep: AI-powered mock interviews
 - [ ] Salary Negotiation: AI coach for offers
 - [ ] Network Analysis: LinkedIn graph for warm intros
@@ -175,4 +189,4 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ---
 
-**Built with ❤️ and Gemini for the Gemini 3 Global Hackathon**
+**Built with Gemini for the Gemini 3 Global Hackathon**
